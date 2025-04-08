@@ -1,3 +1,11 @@
+# React (CRA) specific
+client/build/
+client/.env
+client/node_modules/
+
+# CRA testing coverage (if used)
+client/coverage/
+
 # Logs
 logs
 *.log

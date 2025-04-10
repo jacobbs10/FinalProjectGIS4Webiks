@@ -103,16 +103,9 @@ function App() {
   } else {
     setError('Geolocation is not supported by your browser');
     setLoading(false);
-  }
-    
-    // Check periodically (e.g., every minute)
-    // const interval = setInterval(getLocation, 10000);
+  }    
 
-    // return () => clearInterval(interval);
-
-  }, []);
-
-  //console.log(`position: La ${location.latitude} Lo ${location.longitude}`)
+  }, []);  
 
   // Check token validity on component mount and periodically
   useEffect(() => {
@@ -205,14 +198,6 @@ useEffect(() => {
   return () => api.interceptors.response.eject(interceptor);
 }, []);
 
-const handleInputChange = useCallback((event) => {
-  const { name, value } = event.target; // Extract name & value from input
-  //console.log(`name: ${name} value: ${value}`)
-  setLoginValue((prev) => ({
-      ...prev,  // Keep the other state values unchanged
-      [name]: value  // Dynamically update either userName or password
-  }));
-}, []);
 
 const handleLogout = () => {
   // Clear session storage
@@ -225,48 +210,7 @@ const handleLogout = () => {
   setIsTokenValid(false);
 };
 
-const getHeader = () => {
-  if (loggedIn.status) {
-    return (
-      <div className={styles.headerContent}>
-          <h1>Welcome</h1>
-          <button 
-              onClick={handleLogout}
-              className={styles.logoutButton}
-          >
-              Logout
-          </button>
-      </div>
-    );
-  } else {
-      return (
-          <>
-              <h3>Please Log In</h3>
-              <form onSubmit={handleSubmit}>
-              <input 
-                  type="text"
-                  name="username"  // Match state key
-                  value={loginValue.username} 
-                  onChange={handleInputChange}
-                  placeholder="Enter Username"
-                  className={styles.inputBox} 
-              />
-              <input
-                  type="password"
-                  name="password"  // Match state key
-                  value={loginValue.password}
-                  onChange={handleInputChange}
-                  placeholder="Enter Password"
-                  className={styles.inputBox} 
-              />
-              {error && <div className={styles.error}>{error}</div>}
-              <button type="submit" className={styles.submitButton}>Submit</button>
-          </form>
-          </>
-      );
-  }
-};
-
+/* To be removed as soon as I make sure that login script is doing all it should
 const handleSubmit = async (event) => {
 event.preventDefault();
 setError("");
@@ -305,7 +249,7 @@ try {
 }
 };
 
-
+*/
 
   const markers = [
     {
@@ -331,7 +275,23 @@ try {
     <div className={styles.container}>
       {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
       <div className={styles.content}>
-        <div className={styles.header}>{getHeader()}</div>
+        <div className={styles.header}>
+        <nav className="App-navigation">
+          <a className="App-link" href="/register">Register</a>
+          <a>/</a>
+          <a className="App-link" href="/login">Login</a>
+          <a>/</a>
+          <button 
+            className="App-link" 
+            onClick={handleLogout}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
+          >
+            Logout
+          </button>
+          <span style={{ color: '#61dafb', marginLeft: '5px' }}>&copy;</span>
+
+        </nav>
+        </div>
         <div className={styles.middle}>
         <MapContainer center={[location.latitude, location.longitude]} zoom={13}>
           <TileLayer

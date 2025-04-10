@@ -20,8 +20,9 @@ body {
 .header {
     background: #555;
     color: white;
-    padding: 30px;
-    text-align: center;
+    padding: 20px;
+    height: 20px;
+    text-align: right;
 }
 h1 {
     margin-right: 20px;

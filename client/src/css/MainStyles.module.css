@@ -1,0 +1,151 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: Arial, sans-serif;
+}
+.container {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+.content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.header {
+    background: #555;
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+h1 {
+    margin-right: 20px;
+    color: white;
+}
+.middle {
+    flex: 1;
+    padding: 20px;
+    background: #f4f4f4;
+    overflow: auto;
+   
+}
+
+
+.inputBox {
+    margin-bottom: 5px;
+    display: block;
+    padding: 8px;
+    width: 50%;
+}
+
+.submitButton {
+    margin-top: 5px;
+    padding: 10px;
+    background-color: blue;
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 20%;
+}
+
+.submitButton:hover {
+    background-color: darkblue;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.error {
+    color: red;
+    margin: 10px 0;
+    font-size: 0.9em;
+}
+.headerContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: white;
+}
+
+.logoutButton {
+    padding: 8px 16px;
+    background-color: lightgray;
+    color: rgba(17, 17, 17, 0.473);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.logoutButton:hover {
+    background-color: #c82333;
+}
+.fileUploadLabel {
+    cursor: pointer;
+    color: white;
+    padding: 5px 0;
+    display: block;
+}
+
+.fileUploadLabel:hover {
+    text-decoration: underline;
+}
+
+.fileUploadLabel::after {
+    content: " 📁";
+    font-size: 0.9em;
+}
+
+  .login-prompt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.login-prompt-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.login-prompt-content h2 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.login-prompt-content p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.login-prompt-content button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.login-prompt-content button:hover {
+    background-color: #0056b3;
+}

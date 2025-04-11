@@ -4,10 +4,10 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css';
 import App from './main/App';
-//import Users from "./Users/Users";
-//import AddUser from "./Users/AddUser";
-//import Profile from "./Users/Profile";
-import Home from "./pages/Home";
+import Register from "./users/Register";
+import Login from "./users/Login";
+import AdminUsers from "./users/AdminUsers"; 
+
 import NoPage from "./pages/NoPage";
 
 
@@ -17,11 +17,10 @@ export default function Main() {
       <Routes>
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />                    
-        </Route>        
-        {/*<Route path="users" element={<Users />} />
-        <Route path="userAct/user" element={<AddUser />} />
-        <Route path="profile" element={<Profile />} />*/}
-        {/*<Route path="userAct/user" element={<UserModal />} />*/}
+        </Route>                
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<AdminUsers />} /> 
         <Route path="*" element={<NoPage />} />
       </Routes>
     </BrowserRouter>

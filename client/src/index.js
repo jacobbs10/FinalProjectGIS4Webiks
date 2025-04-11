@@ -7,7 +7,7 @@ import App from './main/App';
 import Register from "./users/Register";
 import Login from "./users/Login";
 import AdminUsers from "./users/AdminUsers"; 
-
+import Home from "./pages/Home";
 import NoPage from "./pages/NoPage";
 
 

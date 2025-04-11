@@ -1,8 +1,46 @@
 /* GLOBAL RESET */
 * {
+<<<<<<< HEAD
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: Arial, sans-serif;
+}
+.container {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+.content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.header {
+    background: #555;
+    color: white;
+    padding: 20px;
+    height: 20px;
+    text-align: right;
+}
+h1 {
+    margin-right: 20px;
+    color: white;
+}
+.middle {
+    flex: 1;
+    padding: 20px;
+    background: #f4f4f4;
+    overflow: auto;
+   
+=======
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+>>>>>>> Noam-ReactUsers
 }
 
 body {

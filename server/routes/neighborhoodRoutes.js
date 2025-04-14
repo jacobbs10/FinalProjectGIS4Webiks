@@ -7,7 +7,7 @@ const {authMiddleware, isAdmin} = require('../middleware/authMiddleware');
 router.get("/neighborhoods", authMiddleware, async (req, res) => {
     try {
         // Get pagination parameters from query string
-        const size = parseInt(req.query.size) || 12;
+        const size = parseInt(req.query.size) || 10000;
         const page = parseInt(req.query.page) || 1;
         
         // Validate parameters
@@ -106,7 +106,7 @@ router.get("/position", authMiddleware, async (req, res) => {
 });
 
 //Create a new neighborhood
-router.post('/neighborhood', authMiddleware, isAdmin, async (req, res) => {
+router.post("/neighborhood", authMiddleware, isAdmin, async (req, res) => {
     try {
       // Extract data from request body
       const { city, neighborhood, id, coordinates } = req.body;

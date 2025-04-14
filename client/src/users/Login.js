@@ -22,17 +22,23 @@ const Login = () => {
     const { username, password } = formData;
 
     try {
-      const res = await axios.post("http://localhost:5000/api/users/login", {
+      const res = await axios.post("http://localhost:5000/api/auth/login", {
         username,
         password,
       });
 
       const loggedInUser = res.data.user;
-      localStorage.setItem("user", JSON.stringify(loggedInUser));
+      
+      console.log(`res.data.token: ${res.data.token} res.token ${res.token}`);
+      sessionStorage.setItem("user", JSON.stringify(loggedInUser));
+      sessionStorage.setItem("token", res.data.token);
       alert("✅ " + res.data.message);
 
+      const t = sessionStorage.getItem("token");
+      console.log(`tok: ${t}`);
+
       // 🔐 Redirect based on user type
-      if (loggedInUser.user_type === "admin") {
+      if (loggedInUser.role === "Admin") {
         navigate("/admin");
       } else {
         navigate("/");

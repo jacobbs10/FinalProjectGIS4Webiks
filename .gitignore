@@ -3,7 +3,8 @@ client/build/
 client/.env
 client/node_modules/
 
-#server specific 
+=======
+# Server specific
 server/node_modules/
 
 # CRA testing coverage (if used)

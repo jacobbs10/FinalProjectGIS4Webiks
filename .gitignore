@@ -3,6 +3,10 @@ client/build/
 client/.env
 client/node_modules/
 
+=======
+# Server specific
+server/node_modules/
+
 # CRA testing coverage (if used)
 client/coverage/
 
@@ -142,3 +146,5 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+BKP/

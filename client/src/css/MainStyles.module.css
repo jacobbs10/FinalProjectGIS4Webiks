@@ -1,63 +1,21 @@
+
+
+
+
+
+
 /* GLOBAL RESET */
 * {
-/*<<<<<<< HEAD*/
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-body {
-    font-family: Arial, sans-serif;
-}
-.container {
-    display: flex;
-    min-height: 100vh;
-    position: relative;
-}
-.content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-.header {
-    background: #555;
-    color: white;
-    padding: 20px;
-    height: 20px;
-    text-align: right;
-}
-h1 {
-    margin-right: 20px;
-    color: white;
-}
-.middle {
-    flex: 1;
-    padding: 20px;
-    background: #f4f4f4;
-    overflow: auto;
-   
-/*=======*/
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-/*>>>>>>> Noam-ReactUsers*/
 }
 
 body {
   font-family: Arial, sans-serif;
 }
 
-/* ------------------------------
-   Register Page
------------------------------- */
-.registerContainer {
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  background-color: #f9f9f9;
-}
+
 
 .registerContainer h2 {
   text-align: center;
@@ -71,7 +29,8 @@ body {
   border-radius: 6px;
 }
 
-.registerContainer button {
+.registerContainer button,
+.loginContainer button {
   width: 100%;
   padding: 10px;
   margin-top: 12px;
@@ -82,21 +41,25 @@ body {
   cursor: pointer;
 }
 
-.registerContainer button:hover {
+.registerContainer button:hover,
+.loginContainer button:hover {
   background-color: #1565c0;
 }
 
+
 /* ------------------------------
-   Login Page
+   Login and Register Pages
 ------------------------------ */
+.registerContainer,
 .loginContainer {
   max-width: 400px;
   margin: 40px auto;
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 12px;
-  background-color: #fdfdfd;
+  background-color: #f9f9f9; /* unified color */
 }
+
 
 .loginContainer h2 {
   text-align: center;
@@ -110,30 +73,24 @@ body {
   border-radius: 6px;
 }
 
-.loginContainer button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 12px;
-  background-color: #388e3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
 
-.loginContainer button:hover {
-  background-color: #2e7d32;
-}
 
 /* ------------------------------
    Admin Users Page
 ------------------------------ */
-.adminUsersContainer {
+
+
+
+
+.adminPanel {
+  margin-top: 80px;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
+
+
 
 /* 👇 Wrapper to center table and avoid overflow */
 .tableWrapper {
@@ -184,6 +141,15 @@ body {
 .userTable tr:hover {
   background-color: #f9f9f9;
 }
+
+.userTable button {
+  padding: 6px 10px;
+  margin: 4px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
 
 .nowrap {
   white-space: nowrap;
@@ -458,4 +424,21 @@ form {
 
 .cancelButton:hover {
   background-color: #757575;
+}
+
+
+.authLinkBox {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.authLink {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.authLink:hover {
+  text-decoration: underline;
 }

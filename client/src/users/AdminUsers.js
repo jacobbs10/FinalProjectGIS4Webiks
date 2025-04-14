@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import FixedHeader from "../components/FixedHeader";
 import styles from "../css/MainStyles.module.css";
 
@@ -6,24 +8,8 @@ const AdminUsers = () => {
   const [searchEmail, setSearchEmail] = useState("");
   const [pageLimit, setPageLimit] = useState(10);
   const [sortBy, setSortBy] = useState("");
-
-  const [allUsers, setAllUsers] = useState([
-    {
-      _id: "1",
-      username: "john_doe",
-      password: "12345678",
-      user_firstname: "John",
-      user_lastname: "Doe",
-      user_cellphone: "0501234567",
-      user_email: "john@example.com",
-      user_type: "viewer",
-      user_status: "Active",
-      user_created: "2024-01-10",
-      user_modified: "2024-03-05",
-    },
-  ]);
-
-  const [users, setUsers] = useState(allUsers);
+  const [allUsers, setAllUsers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
   const [newUser, setNewUser] = useState({
@@ -35,46 +21,74 @@ const AdminUsers = () => {
     user_email: "",
     user_status: true,
   });
+  const navigate = useNavigate();
+  const [authorized, setAuthorized] = useState(false);
+  const handleEditClick = (user) => {
+    setEditingUserId(user._id);
+    setEditedUser({ ...user });
+  };
+  
+
+
+
+
+
+  useEffect(() => {
+    const raw = localStorage.getItem("user");
+    if (!raw) {
+      navigate("/login");
+      return;
+    }
+  
+    const user = JSON.parse(raw);
+    if (user.user_type !== "admin") {
+      alert("Access denied. Admins only.");
+      navigate("/login");
+      return;
+    }
+  
+    setAuthorized(true); // ✅ only happens for real admins
+  }, [navigate]);
+  
+  
+
+  
+  
+
+    useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/users");
+        setAllUsers(res.data);
+        setUsers(res.data);
+      } catch (err) {
+        console.error("❌ Failed to fetch users:", err);
+        alert("Error loading users from server.");
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const validateNewUser = () => {
-    const {
-      username,
-      password,
-      user_firstname,
-      user_lastname,
-      user_cellphone,
-      user_email,
-    } = newUser;
-
-    if (
-      !username ||
-      !password ||
-      !user_firstname ||
-      !user_lastname ||
-      !user_cellphone ||
-      !user_email
-    ) {
+    const { username, password, user_firstname, user_lastname, user_cellphone, user_email } = newUser;
+    if (!username || !password || !user_firstname || !user_lastname || !user_cellphone || !user_email) {
       alert("All fields are required.");
       return false;
     }
-
     if (password.length < 8) {
       alert("Password must be at least 8 characters long.");
       return false;
     }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(user_email)) {
       alert("Please enter a valid email address.");
       return false;
     }
-
     const phoneRegex = /^\d{10,}$/;
     if (!phoneRegex.test(user_cellphone)) {
-      alert("Cellphone must contain only numbers and be at least 10 digits.");
+      alert("Cellphone must be at least 10 digits.");
       return false;
     }
-
     return true;
   };
 
@@ -93,13 +107,11 @@ const AdminUsers = () => {
     setUsers(allUsers);
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!validateNewUser()) return;
 
     const today = new Date().toISOString().split("T")[0];
-
     const newUserEntry = {
-      _id: Date.now().toString(),
       ...newUser,
       user_type: "viewer",
       user_status: newUser.user_status ? "Active" : "Inactive",
@@ -107,64 +119,51 @@ const AdminUsers = () => {
       user_modified: today,
     };
 
-    const updated = [...allUsers, newUserEntry];
-    setAllUsers(updated);
-    setUsers(updated);
-
-    setNewUser({
-      username: "",
-      password: "",
-      user_firstname: "",
-      user_lastname: "",
-      user_cellphone: "",
-      user_email: "",
-      user_status: true,
-    });
+    try {
+      const res = await axios.post("http://localhost:5000/api/users/register", newUserEntry);
+      const updated = [...allUsers, res.data.user || newUserEntry];
+      setAllUsers(updated);
+      setUsers(updated);
+      setNewUser({
+        username: "",
+        password: "",
+        user_firstname: "",
+        user_lastname: "",
+        user_cellphone: "",
+        user_email: "",
+        user_status: true,
+      });
+    } catch (err) {
+      alert("Error adding user: " + (err.response?.data?.message || err.message));
+    }
   };
 
-  const handleNewUserChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const cleanedValue =
-      name === "user_cellphone" ? value.replace(/[^\d]/g, "") : value;
 
-    setNewUser((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : cleanedValue,
-    }));
-  };
-
-  const handleEditClick = (user) => {
-    setEditingUserId(user._id);
-    setEditedUser({ ...user });
-  };
 
   const handleEditChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const cleanedValue =
-      name === "user_cellphone" ? value.replace(/[^\d]/g, "") : value;
-
-    setEditedUser((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : cleanedValue,
-    }));
+    const cleanedValue = name === "user_cellphone" ? value.replace(/[^\d]/g, "") : value;
+    setEditedUser((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : cleanedValue }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const today = new Date().toISOString().split("T")[0];
     const updatedUser = {
       ...editedUser,
-      user_status: editedUser.user_status ? "Active" : "Inactive",
+      user_status: editedUser.user_status === true || editedUser.user_status === "Active" ? "Active" : "Inactive",
       user_modified: today,
     };
 
-    const updatedList = allUsers.map((u) =>
-      u._id === editingUserId ? updatedUser : u
-    );
-
-    setAllUsers(updatedList);
-    setUsers(updatedList);
-    setEditingUserId(null);
-    setEditedUser({});
+    try {
+      await axios.put(`http://localhost:5000/api/users/${editingUserId}`, updatedUser);
+      const updatedList = allUsers.map((u) => (u._id === editingUserId ? updatedUser : u));
+      setAllUsers(updatedList);
+      setUsers(updatedList);
+      setEditingUserId(null);
+      setEditedUser({});
+    } catch (err) {
+      alert("Error updating user: " + (err.response?.data?.message || err.message));
+    }
   };
 
   const handleCancel = () => {
@@ -172,183 +171,206 @@ const AdminUsers = () => {
     setEditedUser({});
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
-
-    const updatedList = allUsers.filter((u) => u._id !== id);
-    setAllUsers(updatedList);
-    setUsers(updatedList);
+    try {
+      await axios.delete(`http://localhost:5000/api/users/${id}`);
+      const updatedList = allUsers.filter((u) => u._id !== id);
+      setAllUsers(updatedList);
+      setUsers(updatedList);
+    } catch (err) {
+      alert("Error deleting user: " + (err.response?.data?.message || err.message));
+    }
   };
 
+  if (!authorized) return null;
+
   return (
-    <>
-      <FixedHeader title="Admin - Manage Users" />
-      <div className={styles.adminUsersContainer} style={{ paddingTop: "80px" }}>
-        <h2>Manage Users</h2><br/><br/>
+    <div>
+      <FixedHeader title="Admin User Management" />
+      <div className={styles.adminPanel}>
+        <h2>All Users</h2>
+
 
         <div className={styles.toolbar}>
-          <input
-            type="text"
-            placeholder="Search by any field"
-            value={searchEmail}
-            onChange={(e) => setSearchEmail(e.target.value)}
-          />
-          <button onClick={handleSearch}>Search</button>
-          <button onClick={handleReset}>Clear</button>
+  <input
+    type="text"
+    placeholder="Search by any field"
+    value={searchEmail}
+    onChange={(e) => setSearchEmail(e.target.value)}
+  />
+  <button onClick={handleSearch}>Search</button>
+  <button onClick={handleReset}>Clear</button>
 
-          <select
-            value={pageLimit}
-            onChange={(e) => setPageLimit(Number(e.target.value))}
-          >
-            <option value={10}>Page Limit: 10</option>
-            <option value={20}>Page Limit: 20</option>
-            <option value={50}>Page Limit: 50</option>
+  <select
+    value={pageLimit}
+    onChange={(e) => setPageLimit(Number(e.target.value))}
+  >
+    <option value={10}>Page Limit: 10</option>
+    <option value={20}>Page Limit: 20</option>
+    <option value={50}>Page Limit: 50</option>
+  </select>
+
+  <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+    <option value="">Sort By</option>
+    <option value="user_type">User Type</option>
+    <option value="user_created">Created Date</option>
+    <option value="user_status">Status</option>
+  </select>
+</div>
+
+
+
+<table className={styles.userTable}>
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Password</th>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Cellphone</th>
+      <th>Email</th>
+      <th>User Type</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Modified</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>
+    <input
+      name="username"
+      value={newUser.username}
+      onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+    />
+  </td>
+  <td>
+    <input
+      name="password"
+      type="password"
+      value={newUser.password}
+      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+    />
+  </td>
+  <td>
+    <input
+      name="user_firstname"
+      value={newUser.user_firstname}
+      onChange={(e) => setNewUser({ ...newUser, user_firstname: e.target.value })}
+    />
+  </td>
+  <td>
+    <input
+      name="user_lastname"
+      value={newUser.user_lastname}
+      onChange={(e) => setNewUser({ ...newUser, user_lastname: e.target.value })}
+    />
+  </td>
+  <td>
+    <input
+      name="user_cellphone"
+      value={newUser.user_cellphone}
+      onChange={(e) =>
+        setNewUser({ ...newUser, user_cellphone: e.target.value.replace(/[^\d]/g, "") })
+      }
+    />
+  </td>
+  <td>
+    <input
+      name="user_email"
+      value={newUser.user_email}
+      onChange={(e) => setNewUser({ ...newUser, user_email: e.target.value })}
+    />
+  </td>
+  <td>
+    <select
+      name="user_type"
+      value={newUser.user_type}
+      onChange={(e) => setNewUser({ ...newUser, user_type: e.target.value })}
+    >
+      <option value="viewer">Viewer</option>
+      <option value="admin">Admin</option>
+    </select>
+  </td>
+  <td>
+    <input
+      type="checkbox"
+      name="user_status"
+      checked={newUser.user_status}
+      onChange={(e) =>
+        setNewUser({ ...newUser, user_status: e.target.checked })
+      }
+    />
+  </td>
+  <td>–</td>
+  <td>–</td>
+  <td>
+    <button className={styles.addButton} onClick={handleAddUser}>Add</button>
+  </td>
+</tr>
+
+
+     
+{allUsers.map((user) => (
+  <tr key={user._id}>
+    {editingUserId === user._id ? (
+      <>
+        <td><input name="username" value={editedUser.username} onChange={handleEditChange} /></td>
+        <td><input name="password" type="password" value={editedUser.password} onChange={handleEditChange} /></td>
+        <td><input name="user_firstname" value={editedUser.user_firstname} onChange={handleEditChange} /></td>
+        <td><input name="user_lastname" value={editedUser.user_lastname} onChange={handleEditChange} /></td>
+        <td><input name="user_cellphone" value={editedUser.user_cellphone} onChange={handleEditChange} /></td>
+        <td><input name="user_email" value={editedUser.user_email} onChange={handleEditChange} /></td>
+        <td>
+          <select name="user_type" value={editedUser.user_type} onChange={handleEditChange}>
+            <option value="viewer">Viewer</option>
+            <option value="admin">Admin</option>
           </select>
+        </td>
+        <td><input type="checkbox" name="user_status" checked={editedUser.user_status} onChange={(e) => setEditedUser({...editedUser, user_status: e.target.checked})} /></td>
+        <td>{editedUser.user_created}</td>
+        <td>{editedUser.user_modified}</td>
+        <td>
+          <button onClick={() => handleSave(user._id)} className={styles.saveButton}>Save</button>
+          <button onClick={handleCancel} className={styles.cancelButton}>Cancel</button>
+        </td>
+      </>
+    ) : (
+      <>
+        <td>{user.username}</td>
+        <td>••••••</td>
+        <td>{user.user_firstname}</td>
+        <td>{user.user_lastname}</td>
+        <td>{user.user_cellphone}</td>
+        <td>{user.user_email}</td>
+        <td>{user.user_type}</td>
+        <td>{user.user_status ? "Active" : "Inactive"}</td>
+        <td>{user.user_created}</td>
+        <td>{user.user_modified}</td>
+        <td>
+          <button onClick={() => handleEditClick(user)} className={styles.editButton}>Edit</button>
+          <button onClick={() => handleDelete(user._id)} className={styles.deleteButton}>Delete</button>
+        </td>
+      </>
+    )}
+  </tr>
+))}
 
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="">Sort By</option>
-            <option value="usertype">User Type</option>
-            <option value="date">Created Date</option>
-            <option value="status">Status</option>
-          </select>
-        </div>
+     
+     
+     
+     
+     
+   
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.userTable}>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Password</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Cellphone</th>
-                <th>Email</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Modified</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id}>
-                  {editingUserId === user._id ? (
-                    <>
-                      <td><input name="username" value={editedUser.username} onChange={handleEditChange} /></td>
-                      <td><input name="password" type="password" value={editedUser.password || ""} onChange={handleEditChange} /></td>
-                      <td><input name="user_firstname" value={editedUser.user_firstname} onChange={handleEditChange} /></td>
-                      <td><input name="user_lastname" value={editedUser.user_lastname} onChange={handleEditChange} /></td>
-                      <td><input name="user_cellphone" value={editedUser.user_cellphone} onChange={handleEditChange} /></td>
-                      <td><input name="user_email" value={editedUser.user_email} onChange={handleEditChange} /></td>
-                      <td>{user.user_type}</td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          name="user_status"
-                          checked={editedUser.user_status === "Active"}
-                          onChange={(e) =>
-                            setEditedUser((prev) => ({
-                              ...prev,
-                              user_status: e.target.checked ? "Active" : "Inactive",
-                            }))
-                          }
-                        />
-                      </td>
-                      <td className={styles.nowrap}>{user.user_created}</td>
-                      <td className={styles.nowrap}>
-                        {new Date().toISOString().split("T")[0]}
-                      </td>
-                      <td>
-                      <button className={`${styles.actionButton} ${styles.saveButton}`} onClick={handleSave}>Save</button>
-                      <button className={`${styles.actionButton} ${styles.cancelButton}`} onClick={handleCancel}>Cancel</button>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td>{user.username}</td>
-                      <td>••••••••</td>
-                      <td>{user.user_firstname}</td>
-                      <td>{user.user_lastname}</td>
-                      <td>{user.user_cellphone}</td>
-                      <td>{user.user_email}</td>
-                      <td>{user.user_type}</td>
-                      <td>{user.user_status}</td>
-                      <td className={styles.nowrap}>{user.user_created}</td>
-                      <td className={styles.nowrap}>{user.user_modified}</td>
-                      <td>
-                      <button className={`${styles.actionButton} ${styles.editButton}`} onClick={() => handleEditClick(user)}>Edit</button>
-                      <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(user._id)}>Delete</button>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))}
 
-              {/* ➕ Add New User Row */}
-              <tr>
-                <td>
-                  <input
-                    name="username"
-                    value={newUser.username}
-                    onChange={handleNewUserChange}
-                  />
-                </td>
-                <td>
-                  <input
-                    name="password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={handleNewUserChange}
-                  />
-                </td>
-                <td>
-                  <input
-                    name="user_firstname"
-                    value={newUser.user_firstname}
-                    onChange={handleNewUserChange}
-                  />
-                </td>
-                <td>
-                  <input
-                    name="user_lastname"
-                    value={newUser.user_lastname}
-                    onChange={handleNewUserChange}
-                  />
-                </td>
-                <td>
-                  <input
-                    name="user_cellphone"
-                    value={newUser.user_cellphone}
-                    onChange={handleNewUserChange}
-                  />
-                </td>
-                <td>
-                  <input
-                    name="user_email"
-                    type="email"
-                    value={newUser.user_email}
-                    onChange={handleNewUserChange}
-                  />
-                </td>
-                <td><span>viewer</span></td>
-                <td>
-                  <input
-                    type="checkbox"
-                    name="user_status"
-                    checked={newUser.user_status}
-                    onChange={handleNewUserChange}
-                  />
-                </td>
-                <td className={styles.nowrap}>{new Date().toISOString().split("T")[0]}</td>
-                <td className={styles.nowrap}>{new Date().toISOString().split("T")[0]}</td>
-                <td><button className={`${styles.actionButton} ${styles.addButton}`} onClick={handleAddUser}>Add</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  </tbody>
+</table>
+
       </div>
-    </>
+    </div>
   );
 };
 

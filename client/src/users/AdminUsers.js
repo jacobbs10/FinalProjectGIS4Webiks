@@ -5,7 +5,7 @@ import FixedHeader from "../components/FixedHeader";
 import styles from "../css/MainStyles.module.css";
 
 const AdminUsers = () => {
-  const [searchEmail, setSearchEmail] = useState("");
+   const [searchEmail, setSearchEmail] = useState("");
   const [pageLimit, setPageLimit] = useState(10);
   const [sortBy, setSortBy] = useState("");
   const [allUsers, setAllUsers] = useState([]);
@@ -27,7 +27,7 @@ const AdminUsers = () => {
     setEditingUserId(user._id);
     setEditedUser({ ...user });
   };
-  
+  const token = sessionStorage.getItem("token");
 
 
 
@@ -41,12 +41,12 @@ const AdminUsers = () => {
     }
   
     const user = JSON.parse(raw);
-    if (user.user_type !== "admin") {
+    if (user.role !== "Admin") {
       alert("Access denied. Admins only.");
       navigate("/login");
       return;
     }
-  
+      
     setAuthorized(true); // ✅ only happens for real admins
   }, [navigate]);
   
@@ -58,7 +58,12 @@ const AdminUsers = () => {
     useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users");
+        const res = await axios.get("http://localhost:5000/api/users", {
+          headers: {
+              'Authorization': `${token}`,
+              'Content-Type': 'application/json'
+          }
+      });
         setAllUsers(res.data);
         setUsers(res.data);
       } catch (err) {

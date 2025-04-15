@@ -34,7 +34,7 @@ const AdminUsers = () => {
 
 
   useEffect(() => {
-    const raw = localStorage.getItem("user");
+    const raw = sessionStorage.getItem("user");
     if (!raw) {
       navigate("/login");
       return;

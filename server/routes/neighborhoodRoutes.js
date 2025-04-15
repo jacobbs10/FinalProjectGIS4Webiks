@@ -164,7 +164,7 @@ router.post("/neighborhood", authMiddleware, isAdmin, async (req, res) => {
   });
 
   // Bulk insert neighborhoods
-  router.post("/neighborhoods/bulk", authMiddleware, isAdmin, async (req, res) => {
+  router.post("/bulk", authMiddleware, isAdmin, async (req, res) => {
     try {
         const neighborhoods = req.body;
 

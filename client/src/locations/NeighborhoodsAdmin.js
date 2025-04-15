@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FixedHeader from "../components/FixedHeader";
 import styles from "../css/MainStyles.module.css";
+import { processBulkHoods } from '../utils/BulkHoodsInsert';
 
 const NeighborhoodsAdmin = () => {
   const [searchId, setSearchId] = useState("");
@@ -10,6 +11,7 @@ const NeighborhoodsAdmin = () => {
   const [searchNeighborhood, setSearchNeighborhood] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [sortBy, setSortBy] = useState("");
+  const [sortDirection, setSortDirection] = useState("asc");
   const [allHoods, setAllHoods] = useState([]);
   const [allHoodss, setHoods] = useState([]);
   const [editingHoodId, setEditingHoodId] = useState(null);
@@ -77,9 +79,29 @@ const NeighborhoodsAdmin = () => {
         const matchNeighborhood = searchNeighborhood === "" || h.neighborhood.toLowerCase().includes(searchNeighborhood.toLowerCase());
         return matchId && matchCity && matchNeighborhood;
     });
+
+    if (sortBy) {
+      filtered.sort((a, b) => {
+        const valA = a[sortBy];
+        const valB = b[sortBy];
+        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
     setCurrentPage(1);
     setHoods(filtered);
-  }, [searchId, searchCity, searchNeighborhood, allHoods]);
+  }, [searchId, searchCity, searchNeighborhood, allHoods, sortBy, sortDirection]);
+
+    const handleSort = (key) => {
+      if (sortBy === key) {
+        setSortDirection(prev => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        setSortBy(key);
+        setSortDirection("asc");
+      }
+    };
 
   const validateNewHood = () => {
     const { id, city, neighborhood, coordinates } = newHood;
@@ -130,6 +152,51 @@ const NeighborhoodsAdmin = () => {
         alert("Error adding neighborhood: " + (err.response?.data?.message || err.message));
     }
   };
+
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
+    // Store the input element to reset it later
+    const fileInput = event.target;
+    let result;
+    if (file) {
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const content = e.target.result;
+            result = await processBulkHoods(content);
+            
+            
+            if (result.success) {
+              alert(`Successfully registered ${result.data.success.count} neighborhoods`);
+              if (result.data.failures.count > 0) {
+                alert(`Failed to register ${result.data.failures.count} neighborhoods`);
+                console.log('Failed registrations:', result.data.failures);
+              }
+            } else {
+              if (result.errors) {
+                alert('Validation errors found. Check console for details.');
+                console.log('Validation errors:', result.errors);
+              } else {
+                alert(`Error: ${result.error}`);
+              }
+            }
+          } catch (error) {
+            console.error('Error processing file:', error);
+            alert('Error processing file');
+          }
+        };
+        reader.readAsText(file);
+      } catch (error) {
+        console.error('Error reading file:', error);
+        alert('Error reading file');
+      } finally {
+        // Reset the file input after processing
+        fileInput.value = '';
+    }
+    }
+  };
+
 
   const handleEditClick = (hood) => {
     setEditingHoodId(hood.id);
@@ -240,7 +307,13 @@ const NeighborhoodsAdmin = () => {
             setSearchNeighborhood("");
             setHoods(allHoods);
             setCurrentPage(1);
-        }}>Clear</button>
+        }}>Clear Filter</button>
+        <button onClick={() => {
+            setSortBy("");
+            setSortDirection("asc");
+            setHoods(allHoods);
+            setCurrentPage(1);
+          }}>Clear Sort</button>
           <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
             <option value={10}>10</option>
             <option value={20}>20</option>
@@ -256,9 +329,15 @@ const NeighborhoodsAdmin = () => {
         <table className={styles.userTable}>
           <thead>
             <tr>
-              <th>Id</th>
-              <th>City</th>
-              <th>Neighborhood</th>
+               <th onClick={() => handleSort("id")}>
+                Id {sortBy === "id" && (sortDirection === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => handleSort("city")}>
+                City {sortBy === "city" && (sortDirection === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => handleSort("neighborhood")}>
+                Neighborhood {sortBy === "neighborhood" && (sortDirection === "asc" ? "↑" : "↓")}
+              </th>
               <th>Coordinates</th>
               <th>Actions</th>
             </tr>
@@ -269,7 +348,20 @@ const NeighborhoodsAdmin = () => {
               <td><input value={newHood.city} onChange={(e) => setNewHood({ ...newHood, city: e.target.value })} /></td>
               <td><input value={newHood.neighborhood} onChange={(e) => setNewHood({ ...newHood, neighborhood: e.target.value })} /></td>
               <td><button onClick={openNewCoordPopup}>Set Coordinates</button></td>
-              <td><button onClick={handleAddHood}>Add</button></td>
+              <td><button onClick={handleAddHood}>Add</button>
+              <button className={styles.fileUploadButton}
+                onClick={() => document.getElementById("bulkUploadInput").click()}
+              >
+                Bulk Upload
+              </button>
+              <input
+                id="bulkUploadInput"
+                type="file"
+                accept=".json, .txt"
+                onChange={(event) => handleFileSelect(event)}
+                style={{ display: "none" }}
+              />
+              </td>
             </tr>
 
             {paginatedHoods.map((hood) => (

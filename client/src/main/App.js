@@ -41,6 +41,8 @@ function App() {
     source: 'default'
   });  
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null); 
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
 
   
   // You can call this on component mount if you want location immediately
@@ -106,6 +108,20 @@ function App() {
   }    
 
   }, []);  
+
+  useEffect(() => {
+      const raw = sessionStorage.getItem("user");
+      if (!raw) {
+        console.warn("No user data found in sessionStorage.");
+        return;        
+      }
+      try {
+        const parsedUser = JSON.parse(raw);
+        setUser(parsedUser); // Store the user data in state
+      } catch (error) {
+        console.error("Failed to parse user data:", error);
+      }      
+    }, []);
 
   // Check token validity on component mount and periodically
   useEffect(() => {
@@ -200,56 +216,17 @@ useEffect(() => {
 
 
 const handleLogout = () => {
+  console.log("Logging out...");
   // Clear session storage
   sessionStorage.removeItem("token"); 
-  sessionStorage.removeItem("loginStatus");
-  sessionStorage.removeItem("userName");
+  sessionStorage.removeItem("user");
 
   // Reset state
   setLoggedIn({ status: false, Name: "" });  
   setIsTokenValid(false);
+
+  window.location.reload();
 };
-
-/* To be removed as soon as I make sure that login script is doing all it should
-const handleSubmit = async (event) => {
-event.preventDefault();
-setError("");
-
-try {
-    const response = await fetch('http://localhost:8000/auth/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(loginValue)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Login failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    
-    // Store login information in sessionStorage
-    sessionStorage.setItem("loginStatus", "true");
-    sessionStorage.setItem("userName", data.username);
-    sessionStorage.setItem("token", data.token);
-
-    setLoggedIn(true);
-
-    setToken(data.token);    
-    setShowLoginPrompt(false);
-    setIsTokenValid(true);
-    
-    navigate('/');
-} catch (error) {
-    console.error("Error:", error);
-    setError("Login failed. Please check your credentials.");
-}
-};
-
-*/
 
   const markers = [
     {
@@ -288,6 +265,22 @@ try {
           >
             Logout
           </button>
+          {user?.role === "Admin" && (
+            <div className={styles.adminMenuContainer}>
+            <button 
+              onClick={() => setShowAdminMenu(prev => !prev)} 
+              className={styles.adminenuToggle}
+            >
+            Admin Activities ▼
+          </button>
+          {showAdminMenu && (
+            <div className={styles.adminMenuDropdown}>
+              <Link to="/admin">Manage Users</Link>
+              <Link to="/hoods">Manage Neighborhoods</Link>
+            </div>
+          )}
+          </div>
+        )}
           <span style={{ color: '#61dafb', marginLeft: '5px' }}>&copy;</span>
 
         </nav>

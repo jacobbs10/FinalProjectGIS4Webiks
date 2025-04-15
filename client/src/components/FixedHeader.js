@@ -4,7 +4,9 @@ import styles from "../css/MainStyles.module.css";
 const FixedHeader = ({ title = "GIS4Webiks" }) => {
   const handleLogout = () => {
     console.log("Logging out...");
-    // TODO: Handle log out
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    window.location.href = "/login"; // Redirect to login page
   };
 
   return (

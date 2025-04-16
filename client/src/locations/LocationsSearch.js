@@ -15,6 +15,7 @@ import {
   ListItemText,
   Alert,
 } from '@mui/material';
+import api from '../utils/axios';
 
 const LocationsSearch = () => {
   const [userPosition, setUserPosition] = useState(null);
@@ -50,13 +51,10 @@ const LocationsSearch = () => {
     // Get user role from authentication
     const getUserRole = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         if (token) {
-          const response = await fetch('/api/auth/user-role', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await response.json();
-          setUserRole(data.role);
+          const response = await api.get('/api/auth/user-role');
+          setUserRole(response.data.role);
         }
       } catch (error) {
         console.error('Error fetching user role:', error);
@@ -70,22 +68,15 @@ const LocationsSearch = () => {
     if (!userPosition) return;
 
     try {
-      const response = await fetch(`/api/neighborhoods/find`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          coordinates: [userPosition.longitude, userPosition.latitude],
-        }),
+      const response = await api.post('/api/neighborhoods/find', {
+        coordinates: [userPosition.longitude, userPosition.latitude]
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to fetch neighborhood');
       }
 
-      const data = await response.json();
-      setNeighborhood(data);
+      setNeighborhood(response.data);
     } catch (error) {
       console.error('Error fetching neighborhood:', error);
       setError('Failed to determine your neighborhood.');
@@ -99,26 +90,18 @@ const LocationsSearch = () => {
     }
 
     try {
-      const response = await fetch('/api/locations/search/distance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          coordinates: [userPosition.longitude, userPosition.latitude],
-          category,
-          distance: Number(distance),
-          userRole
-        }),
+      const response = await api.post('/api/locations/search/distance', {
+        coordinates: [userPosition.longitude, userPosition.latitude],
+        category,
+        distance: Number(distance),
+        userRole
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to fetch locations');
       }
 
-      const data = await response.json();
-      setLocations(data);
+      setLocations(response.data);
       setError('');
     } catch (error) {
       console.error('Error searching locations:', error);
@@ -133,23 +116,16 @@ const LocationsSearch = () => {
     }
 
     try {
-      const response = await fetch('/api/locations/search/neighborhood', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          neighborhoodId: neighborhood._id,
-          category,
-        }),
+      const response = await api.post('/api/locations/search/neighborhood', {
+        neighborhoodId: neighborhood._id,
+        category,
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to fetch locations');
       }
 
-      const data = await response.json();
-      setLocations(data);
+      setLocations(response.data);
       setError('');
     } catch (error) {
       console.error('Error searching locations:', error);

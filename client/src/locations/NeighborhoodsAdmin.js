@@ -19,7 +19,7 @@ const NeighborhoodsAdmin = () => {
   const [newHood, setNewHood] = useState({ city: "", neighborhood: "", id: "", coordinates: [] });
   const [authorized, setAuthorized] = useState(false);
   const navigate = useNavigate();
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.SERVER_PORT || 5000;
   const token = sessionStorage.getItem("token");
 
   const [showPopup, setShowPopup] = useState(false);

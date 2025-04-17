@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "jest",
-    "start": "node server.js"
+    "build": "ncc build src/index.js -o dist",
+    "start": "node dist/index.js"
   },
   "jest": {
     "testEnvironment": "node",

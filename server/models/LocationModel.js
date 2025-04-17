@@ -92,9 +92,6 @@ const LocationSchema = new mongoose.Schema({
 
 LocationSchema.index({ geometry: '2dsphere' });
 LocationSchema.index({ 'properties.id': 1 });
-Kobi-LocationsServer
 LocationSchema.index({ 'properties.category': 1, 'properties.restricted': 1 });
-=======
- main
 
 module.exports = mongoose.model('Location', LocationSchema);

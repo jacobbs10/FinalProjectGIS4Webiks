@@ -114,7 +114,7 @@ router.get("/cat", authMiddleware, async (req, res) => {
 });
 
 // Get locations by area
-router.get("/area", authMiddleware, async (req, res) => {
+router.post("/area", authMiddleware, async (req, res) => {
     try {
         const { coordinates, categories } = req.body;
 
@@ -176,7 +176,7 @@ router.get("/area", authMiddleware, async (req, res) => {
 });
 
 // Get locations by distance
-router.get("/range", authMiddleware, async (req, res) => {
+router.post("/range", authMiddleware, async (req, res) => {
     try {
         const { coordinates, range, categories } = req.body;
 

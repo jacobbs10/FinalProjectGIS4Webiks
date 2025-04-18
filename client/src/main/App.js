@@ -243,7 +243,7 @@ function App() {
     fetchLocations();
   }, []);
 
-  const RecenterMap = ({ lat, lng }) => {
+ /* const RecenterMap = ({ lat, lng })
     const map = useMap();
   
     useEffect(() => {
@@ -251,6 +251,71 @@ function App() {
     }, [lat, lng, map]);
   
     return null; // This component doesn't render anything
+  };*/
+
+  const MapClickHandler = ({ onMapClick }) => {
+    useMapEvents({
+      click(e) {
+        onMapClick(e.latlng); // latlng = { lat, lng }
+      },
+    });
+    return null;
+  };
+
+  const handleMapClick = (latlng) => {
+    setClickedLocation(latlng); // store it in state
+    setShowOptions(true);       // show a modal/popup with "in range" or "neighborhood"
+  };
+
+  const geocodeAddress = async (address) => {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json`);
+    const data = await res.json();
+    if (data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      };
+    }
+    throw new Error("Address not found");
+  };
+
+  const handleUserChoice = async (latlng, option, range) => {
+    try {
+      //console.log("User clicked:", latlng, "Option:", option, "Range:", range);
+      const token = sessionStorage.getItem("token");
+      if (option === "neighborhood") {
+        //console.log("Fetching neighborhood data...");
+        const polygon = await  axios.get(`http://localhost:${PORT}/api/hood/position`, {
+          params: {
+            lng: latlng.lng,
+            lat: latlng.lat,
+          },
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        //console.log("Neighborhood polygon:", polygon.data.geometry.coordinates);               
+        const locations = await  axios.post(`http://localhost:${PORT}/api/locs/area`, { coordinates: polygon.data.geometry.coordinates }, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        //console.log("Locations in neighborhood:", locations.data);
+        setResults(locations.data);
+      } else if (option === "range") {
+        const locations = await api.post(`http://localhost:${PORT}/api/locs/range`, {coordinates: [latlng.lng, latlng.lat], range: range}, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        //console.log("Locations in range:", locations.data);          
+      }
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    }
   };
 
   const MapClickHandler = ({ onMapClick }) => {
@@ -375,26 +440,6 @@ const handleLogout = () => {
   window.location.reload();
 };
 
-  const markers = [
-    {
-      geocode: [32.0860, 34.7825],
-      popUp: "Place holder for locations"
-    },
-    {
-      geocode: [32.0847, 34.7805],
-      popUp: "Place holder for locations"
-    },
-    {
-      geocode: [32.0858, 34.7798],
-      popUp: "Place holder for locations"
-    }
-  ]
-
-  const customIcon = new Icon({
-    iconUrl: require("../icons/destination.png"),
-    iconSize: [36,36]
-  })
-
   return (
     <div className={styles.container}>
       {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
@@ -462,9 +507,8 @@ const handleLogout = () => {
             attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>  | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />     
-           <RecenterMap lat={location.latitude} lng={location.longitude} />
-           <MapClickHandler onMapClick={handleMapClick} />
-                
+           {/*<RecenterMap lat={location.latitude} lng={location.longitude} />*/}
+           <MapClickHandler onMapClick={handleMapClick} />                
            {Object.entries(locationsByCategory).map(([category, features]) => (
               visibleCategories.includes(category) && (
                 <LayerGroup key={category}>

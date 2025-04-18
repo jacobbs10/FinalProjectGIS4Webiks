@@ -116,7 +116,11 @@ router.get("/cat", authMiddleware, async (req, res) => {
 // Get locations by area
 router.post("/area", authMiddleware, async (req, res) => {
     try {
-        const { coordinates, categories } = req.body;
+        const { categories } = req.body;
+        const coordinates = Array.isArray(req.body.coordinates?.[0])
+        ? req.body.coordinates[0]
+        : req.body.coordinates;
+
 
         // Validate that coordinates is an array and forms a valid polygon
         if (!Array.isArray(coordinates) || coordinates.length < 4) {

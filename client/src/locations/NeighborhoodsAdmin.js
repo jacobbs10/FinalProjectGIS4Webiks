@@ -19,7 +19,6 @@ const NeighborhoodsAdmin = () => {
   const [newHood, setNewHood] = useState({ city: "", neighborhood: "", id: "", coordinates: [] });
   const [authorized, setAuthorized] = useState(false);
   const navigate = useNavigate();
-  const PORT = process.env.SERVER_PORT || 5000;
   const token = sessionStorage.getItem("token");
 
   const [showPopup, setShowPopup] = useState(false);
@@ -33,6 +32,8 @@ const NeighborhoodsAdmin = () => {
   
   const totalPages = Math.ceil(allHoodss.length / pageSize);
   const paginatedHoods = allHoodss.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     const raw = sessionStorage.getItem("user");
@@ -48,7 +49,7 @@ const NeighborhoodsAdmin = () => {
   useEffect(() => {
     const fetchHoods = async () => {
       try {
-        const res = await axios.get(`http://localhost:${PORT}/api/hood/neighborhoods`, {
+        const res = await axios.get(`${BASE_URL}/api/hood/neighborhoods`, {
           headers: {
             Authorization: `${token}`,
             "Content-Type": "application/json"
@@ -128,7 +129,7 @@ const NeighborhoodsAdmin = () => {
           };
       
           console.log("🚀 Payload:", payload);
-        const res = await axios.post(`http://localhost:${PORT}/api/hood/neighborhood`, JSON.stringify(payload), {
+        const res = await axios.post(`${BASE_URL}/api/hood/neighborhood`, JSON.stringify(payload), {
         headers: {
           Authorization: `${token}`,
           "Content-Type": "application/json"
@@ -205,7 +206,7 @@ const NeighborhoodsAdmin = () => {
   
   const handleSave = async () => {
     try {
-      await axios.put(`http://localhost:${PORT}/api/hood/neighborhood`, editedHood, {
+      await axios.put(`${BASE_URL}/api/hood/neighborhood`, editedHood, {
         headers: {
           Authorization: `${token}`,
           "Content-Type": "application/json"
@@ -224,7 +225,7 @@ const NeighborhoodsAdmin = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      await axios.delete(`http://localhost:${PORT}/api/hood/neighborhood/${id}`, {
+      await axios.delete(`${BASE_URL}/api/hood/neighborhood/${id}`, {
         headers: {
           Authorization: `${token}`,
           "Content-Type": "application/json"

@@ -15,6 +15,8 @@ const Register = () => {
 
   const navigate = useNavigate();
 
+  const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const cleanedValue =
@@ -67,7 +69,7 @@ const Register = () => {
 
     // ✅ Real backend call using Axios
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", formData);
+      const res = await axios.post(`${BASE_URL}/api/auth/register`, formData);
       alert("✅ " + res.data.message);
       navigate("/login");
     } catch (err) {

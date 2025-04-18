@@ -243,7 +243,7 @@ function App() {
     fetchLocations();
   }, []);
 
- /* const RecenterMap = ({ lat, lng }) => {
+ /* const RecenterMap = ({ lat, lng })
     const map = useMap();
   
     useEffect(() => {
@@ -315,6 +315,62 @@ function App() {
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
+    }
+  };
+
+  const MapClickHandler = ({ onMapClick }) => {
+    useMapEvents({
+      click(e) {
+        onMapClick(e.latlng); // latlng = { lat, lng }
+      },
+    });
+    return null;
+  };
+
+  const handleMapClick = (latlng) => {
+    setClickedLocation(latlng); // store it in state
+    setShowOptions(true);       // show a modal/popup with "in range" or "neighborhood"
+  };
+
+  const geocodeAddress = async (address) => {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json`);
+    const data = await res.json();
+    if (data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      };
+    }
+    throw new Error("Address not found");
+  };
+
+  const handleUserChoice = async (latlng, option, range) => {
+    const token = sessionStorage.getItem("token");
+    if (option === "neighborhood") {
+      const polygon = await  axios.get(`http://localhost:${PORT}/api/hood/position`, {
+        params: {
+          lng: latlng.lng,
+          lat: latlng.lat,
+        },
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json"
+        }
+      });                   
+      const locations = await  axios.post(`http://localhost:${PORT}/api/locs/area`, { coordinates: polygon.data.geometry.coordinates }, {
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      setResults(locations.data);
+    } else if (option === "range") {
+      const locations = await api.post('/api/locs/range', {coordinate: [latlng.lng, latlng.lat], range: range}, {
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json"
+        }
+      });              
     }
   };
 
@@ -452,8 +508,7 @@ const handleLogout = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />     
            {/*<RecenterMap lat={location.latitude} lng={location.longitude} />*/}
-           <MapClickHandler onMapClick={handleMapClick} />
-                
+           <MapClickHandler onMapClick={handleMapClick} />                
            {Object.entries(locationsByCategory).map(([category, features]) => (
               visibleCategories.includes(category) && (
                 <LayerGroup key={category}>

@@ -25,6 +25,7 @@ import {
   FormControlLabel,
   Switch,
 } from '@mui/material';
+import api from '../utils/axios';
 
 const LocationsAdmin = () => {
   const navigate = useNavigate();
@@ -48,11 +49,9 @@ const LocationsAdmin = () => {
     // Check if user is admin
     const checkAdminAccess = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/auth/verify-admin', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) {
+        const token = sessionStorage.getItem('token');
+        const response = await api.get('/api/auth/verify-admin');
+        if (!response.data) {
           navigate('/login');
         }
       } catch (error) {
@@ -67,13 +66,9 @@ const LocationsAdmin = () => {
 
   const fetchLocations = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/locations', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setLocations(data);
-      setFilteredLocations(data);
+      const response = await api.get('/api/locations');
+      setLocations(response.data);
+      setFilteredLocations(response.data);
     } catch (error) {
       console.error('Error fetching locations:', error);
     }
@@ -125,17 +120,8 @@ const LocationsAdmin = () => {
 
   const updateLocation = async (locationData) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/locations/${locationData._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(locationData),
-      });
-      
-      if (response.ok) {
+      const response = await api.put(`/api/locations/${locationData._id}`, locationData);
+      if (response.status === 200) {
         fetchLocations();
         setIsEditDialogOpen(false);
       }
@@ -150,11 +136,7 @@ const LocationsAdmin = () => {
       message: 'Are you sure you want to delete this location?',
       onConfirm: async () => {
         try {
-          const token = localStorage.getItem('token');
-          await fetch(`/api/locations/${locationId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.delete(`/api/locations/${locationId}`);
           fetchLocations();
         } catch (error) {
           console.error('Error deleting location:', error);
@@ -172,14 +154,13 @@ const LocationsAdmin = () => {
     formData.append('file', file);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/locations/bulk-upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+      const response = await api.post('/api/locations/bulk-upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Upload failed');
       }
 

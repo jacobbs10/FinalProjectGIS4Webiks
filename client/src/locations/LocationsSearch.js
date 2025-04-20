@@ -216,7 +216,7 @@ const LocationsSearch = () => {
                       <>
                         Category: {location.category} | 
                         Distance: {location.distance?.toFixed(2)}m
-                        {(userRole === 'Admin' || userRole === 'Advanced') && 
+                        {(userRole === 'Admin' || userRole === 'Confidential') && 
                           ` | Restricted: ${location.restricted ? 'Yes' : 'No'}`
                         }
                       </>

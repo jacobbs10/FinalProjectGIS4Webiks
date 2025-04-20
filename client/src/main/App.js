@@ -239,8 +239,8 @@ function App() {
         });
   
         setLocationsByCategory(grouped);
-        //setVisibleCategories(Object.keys(grouped)); // Default: show all
-        setVisibleCategories([]);
+        setVisibleCategories(Object.keys(grouped)); // Default: show all
+        //setVisibleCategories([]);
       } catch (err) {
         console.error("Failed to fetch locations:", err);
       }
@@ -334,6 +334,7 @@ function App() {
           grouped[category].push(feature);
         });
         setDisplayedLocations(grouped);
+        setDisplayMode('query');
       } else if (option === "range") {
         const locations = await axios.post(`${BASE_URL}/api/locs/range`, {coordinates: [latlng.lng, latlng.lat], range: range}, {
           headers: {
@@ -351,6 +352,7 @@ function App() {
           grouped[category].push(feature);
         });
         setDisplayedLocations(grouped);
+        setDisplayMode('query');
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -451,10 +453,23 @@ const handleShowAllLocations = async () => {
         setDisplayedLocations(grouped);
     setDisplayMode('all');
     // Clear category selection when displaying all locations
-    setVisibleCategories([]);
+    //setVisibleCategories([]);
   } catch (err) {
     console.error("Failed to fetch all locations:", err);
   }
+};
+
+const getFilteredLocations = (locations) => {
+  if (!locations) return {};
+  
+  const filtered = {};
+  Object.keys(locations).forEach(category => {
+    if (visibleCategories.includes(category)) {
+      filtered[category] = locations[category];
+    }
+  });
+  
+  return filtered;
 };
 
   return (
@@ -569,8 +584,7 @@ const handleShowAllLocations = async () => {
               alert("Current location is not available.");
             }
           }}
-        >
-          📍 Recenter
+        >          
         </button>
         <MapContainer 
           center={[location.latitude, location.longitude]}
@@ -623,7 +637,7 @@ const handleShowAllLocations = async () => {
           ))}
             
           {/* 2. Show all locations or query results when in those modes */}
-          {(displayMode === 'all' || displayMode === 'query') && Object.entries(displayedLocations).map(([category, features] ) => (
+          {(displayMode === 'all' || displayMode === 'query') && Object.entries(getFilteredLocations(displayedLocations)).map(([category, features]) => (
             <LayerGroup key={category}>
               {features.map((feature, idx) => (
             <Marker

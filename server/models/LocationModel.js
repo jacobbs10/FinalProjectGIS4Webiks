@@ -91,7 +91,7 @@ const LocationSchema = new mongoose.Schema({
 }, { collection: 'Locations' });
 
 LocationSchema.index({ geometry: '2dsphere' });
-LocationSchema.index({ 'properties.id': 1 });
+//LocationSchema.index({ 'properties.id': 1 });
 LocationSchema.index({ 'properties.category': 1, 'properties.restricted': 1 });
 
 module.exports = mongoose.model('Location', LocationSchema);

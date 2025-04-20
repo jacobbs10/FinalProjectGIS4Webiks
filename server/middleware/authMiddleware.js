@@ -36,12 +36,12 @@ const isAdmin = (req, res, next) => {
   }
 };
 
-// Advanced user middleware
+// Confidential user middleware
 const isAdvanced = (req, res, next) => {
-  if (req.user && (req.user.role === 'Advanced' || req.user.role === 'Admin')) {
+  if (req.user && (req.user.role === 'Confidential' || req.user.role === 'Admin')) {
     next();
   } else {
-    res.status(403).json({ message: 'Access denied. Advanced privileges required.' });
+    res.status(403).json({ message: 'Access denied. Confidential privileges required.' });
   }
 };
 

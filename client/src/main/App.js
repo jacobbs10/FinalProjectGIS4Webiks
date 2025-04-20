@@ -1,11 +1,12 @@
 import '../css/App.css';
-import { React, useState, useEffect, useCallback, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap  } from 'react-leaflet';
+import { React, useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap, LayerGroup, useMapEvents, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import styles from '../css/MainStyles.module.css';
 import api from '../utils/axios'; 
 import { Outlet, Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
@@ -24,15 +25,40 @@ const LoginExpiredPrompt = ({ onClose }) => {
   );
 };
 
+// Popup overlay
+const MapClickPopup = ({ latlng, onSelectOption, onClose }) => {
+  const [range, setRange] = useState(100);
 
+  return (
+    <div className={styles['popup-overlay']}>
+      <div className={styles['popup-box']}>
+        <h3>Choose an Option</h3>
+        <p>Clicked: {latlng.lng.toFixed(5)}, {latlng.lat.toFixed(5)}</p>
+        <button onClick={() => onSelectOption("neighborhood")}>Show locations in neighborhood</button>
+        <div style={{ marginTop: "10px" }}>
+          <label>Range (meters): </label>
+          <select value={range} onChange={(e) => setRange(parseInt(e.target.value))}>
+            <option value={100}>100m</option>
+            <option value={200}>200m</option>
+            <option value={500}>500m</option>
+          </select>
+          <button onClick={() => onSelectOption("range", range)} style={{ marginLeft: "10px" }}>
+            Show within range
+          </button>
+        </div>
+        <button onClick={onClose} style={{ marginTop: "10px" }}>Cancel</button>
+      </div>
+    </div>
+  );
+};
 
 function App() {
 
   const [loggedIn, setLoggedIn] = useState(sessionStorage.getItem("loginStatus") === "true");
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [loginValue, setLoginValue] = useState({username: "", password: ""});
-  const [token, setToken] = useState(sessionStorage.getItem("token") || null);
+  //const [loginValue, setLoginValue] = useState({username: "", password: ""});
+  //const [token, setToken] = useState(sessionStorage.getItem("token") || null);
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [location, setLocation] = useState({
@@ -43,6 +69,29 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null); 
   const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [locationsByCategory, setLocationsByCategory] = useState({});
+  const [visibleCategories, setVisibleCategories] = useState([]);
+  const [showLayerPanel, setShowLayerPanel] = useState(true); 
+  const [clickedLocation, setClickedLocation] = useState(null);
+  const [showOptions, setShowOptions] = useState(false);
+  const [results, setResults] = useState([]);
+  const [showHoods, setShowHoods] = useState(false); // State for checkbox
+  const [neighborhoods, setNeighborhoods] = useState([]); // State for neighborhoods
+  const [displayedLocations, setDisplayedLocations] = useState([]);
+  // Added this state to track what display mode we're in
+  const [displayMode, setDisplayMode] = useState('categories'); // 'categories', 'all', 'query'
+  const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
+  const categoryIcons = {
+    Restroom: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Restaurant: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Shop: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Shelter: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Park: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Museum: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Other: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    // fallback/default
+    default: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+  };
 
   
   // You can call this on component mount if you want location immediately
@@ -166,7 +215,41 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const RecenterMap = ({ lat, lng }) => {
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+          console.warn("No token found in sessionStorage.");
+          return;
+        }
+        const res = await axios.get(`${BASE_URL}/api/locs/all`, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        const features = res.data.locations;
+  
+        const grouped = {};
+        features.forEach(feature => {
+          const category = feature.properties.category || "Uncategorized";
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(feature);
+        });
+  
+        setLocationsByCategory(grouped);
+        //setVisibleCategories(Object.keys(grouped)); // Default: show all
+        setVisibleCategories([]);
+      } catch (err) {
+        console.error("Failed to fetch locations:", err);
+      }
+    };
+  
+    fetchLocations();
+  }, []);
+
+ /* const RecenterMap = ({ lat, lng })
     const map = useMap();
   
     useEffect(() => {
@@ -174,6 +257,104 @@ function App() {
     }, [lat, lng, map]);
   
     return null; // This component doesn't render anything
+  };*/
+
+  const fetchNeighborhoods = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await axios.get(`${BASE_URL}/api/hood/neighborhoods`, {
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      setNeighborhoods(res.data.neighborhoods); // Store fetched neighborhoods
+    } catch (err) {
+      console.error("Failed to fetch neighborhoods:", err);
+    }
+  };
+
+  const MapClickHandler = ({ onMapClick }) => {
+    useMapEvents({
+      click(e) {
+        onMapClick(e.latlng); // latlng = { lat, lng }
+      },
+    });
+    return null;
+  };
+
+  const handleMapClick = (latlng) => {
+    setClickedLocation(latlng); // store it in state
+    setShowOptions(true);       // show a modal/popup with "in range" or "neighborhood"
+    setDisplayedLocations([]); // Clear existing locations
+  };
+
+  const geocodeAddress = async (address) => {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json`);
+    const data = await res.json();
+    if (data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      };
+    }
+    throw new Error("Address not found");
+  };
+
+  const handleUserChoice = async (latlng, option, range) => {
+    try {
+      //console.log("User clicked:", latlng, "Option:", option, "Range:", range);
+      const token = sessionStorage.getItem("token");
+      if (option === "neighborhood") {
+        //console.log("Fetching neighborhood data...");
+        const polygon = await  axios.get(`${BASE_URL}/api/hood/position`, {
+          params: {
+            lng: latlng.lng,
+            lat: latlng.lat,
+          },
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        //console.log("Neighborhood polygon:", polygon.data.geometry.coordinates);               
+        const locations = await  axios.post(`${BASE_URL}/api/locs/area`, { coordinates: polygon.data.geometry.coordinates }, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        //console.log("Locations in neighborhood:", locations.data);
+        const features = locations.data.locations;
+  
+        const grouped = {};
+        features.forEach(feature => {
+          const category = feature.properties.category || "Uncategorized";
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(feature);
+        });
+        setDisplayedLocations(grouped);
+      } else if (option === "range") {
+        const locations = await axios.post(`${BASE_URL}/api/locs/range`, {coordinates: [latlng.lng, latlng.lat], range: range}, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        //console.log("Locations in range:", locations.data);          
+        const features = locations.data.locations;
+  
+        const grouped = {};
+        features.forEach(feature => {
+          const category = feature.properties.category || "Uncategorized";
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(feature);
+        });
+        setDisplayedLocations(grouped);
+      }
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    }
   };
 
 const handleTokenExpiration = () => {
@@ -214,6 +395,20 @@ useEffect(() => {
   return () => api.interceptors.response.eject(interceptor);
 }, []);
 
+useEffect(() => {
+  const saved = localStorage.getItem("visibleCategories");
+  if (saved) {
+    setVisibleCategories(JSON.parse(saved));
+  }
+}, []);
+
+const handleCategoryToggle = (category, checked) => {
+  const updated = checked
+    ? [...visibleCategories, category]
+    : visibleCategories.filter((c) => c !== category);
+  setVisibleCategories(updated);
+  localStorage.setItem("visibleCategories", JSON.stringify(updated));
+};
 
 const handleLogout = () => {
   console.log("Logging out...");
@@ -222,31 +417,45 @@ const handleLogout = () => {
   sessionStorage.removeItem("user");
 
   // Reset state
-  setLoggedIn({ status: false, Name: "" });  
+  setLoggedIn({ status: false });  
   setIsTokenValid(false);
 
   window.location.reload();
 };
 
-  const markers = [
-    {
-      geocode: [32.0860, 34.7825],
-      popUp: "Place holder for locations"
-    },
-    {
-      geocode: [32.0847, 34.7805],
-      popUp: "Place holder for locations"
-    },
-    {
-      geocode: [32.0858, 34.7798],
-      popUp: "Place holder for locations"
-    }
-  ]
+// Handle clearing locations from map
+const handleClearLocations = () => {
+  setDisplayedLocations([]);
+  setVisibleCategories([]);
+  setDisplayMode('none');
+};
 
-  const customIcon = new Icon({
-    iconUrl: require("../icons/destination.png"),
-    iconSize: [36,36]
-  })
+// Handle showing all locations
+const handleShowAllLocations = async () => {
+  try {
+    const token = sessionStorage.getItem("token");
+    const res = await axios.get(`${BASE_URL}/api/locs/all`, {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const features = res.data.locations;
+  
+        const grouped = {};
+        features.forEach(feature => {
+          const category = feature.properties.category || "Uncategorized";
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(feature);
+        });
+        setDisplayedLocations(grouped);
+    setDisplayMode('all');
+    // Clear category selection when displaying all locations
+    setVisibleCategories([]);
+  } catch (err) {
+    console.error("Failed to fetch all locations:", err);
+  }
+};
 
   return (
     <div className={styles.container}>
@@ -254,6 +463,17 @@ const handleLogout = () => {
       <div className={styles.content}>
         <div className={styles.header}>
         <nav className="App-navigation">
+          <label>
+            <input
+              type="checkbox"
+              checked={showHoods}
+              onChange={(e) => {
+                setShowHoods(e.target.checked);
+                if (e.target.checked) fetchNeighborhoods(); // Fetch neighborhoods when checked
+              }}
+            />
+            Show Hoods
+          </label>
           <a className="App-link" href="/register">Register</a>
           <a>/</a>
           <a className="App-link" href="/login">Login</a>
@@ -275,6 +495,8 @@ const handleLogout = () => {
           </button>
           {showAdminMenu && (
             <div className={styles.adminMenuDropdown}>
+              <Link to="/">Home</Link>
+              <Link to="/">Manage Locations</Link>
               <Link to="/admin">Manage Users</Link>
               <Link to="/hoods">Manage Neighborhoods</Link>
             </div>
@@ -286,19 +508,152 @@ const handleLogout = () => {
         </nav>
         </div>
         <div className={styles.middle}>
-        <MapContainer center={[location.latitude, location.longitude]} zoom={13}>
+        <div className={styles.layerPanelWrapper}>
+          <button 
+            onClick={() => setShowLayerPanel(prev => !prev)} 
+            className={styles.layerToggleButton}
+          >
+            {showLayerPanel ? 'Hide Layers' : 'Show Layers'}
+          </button>
+
+          {showLayerPanel && (
+            <div className={styles.legend}>
+            {Object.keys(locationsByCategory).map((category) => (
+              <label key={category} className={styles.legendItem}>
+                <input
+                  type="checkbox"
+                  checked={visibleCategories.includes(category)}
+                  onChange={(e) => handleCategoryToggle(category, e.target.checked)}
+                />
+                <img src={categoryIcons[category]?.options.iconUrl} alt="" width={20} style={{ marginRight: '5px' }} />
+                {category}
+              </label>
+            ))}
+          </div>
+          )}
+        </div>
+        <div className={styles.mapControls}>
+        <button
+          onClick={handleClearLocations}
+        >
+          Clear Locations
+        </button>
+        <button onClick={handleShowAllLocations}>
+            Show All Locations
+          </button>
+          <button onClick={async () => {
+            const address = prompt("Enter an address:");
+            if (address) {
+              try {
+                const coords = await geocodeAddress(address);
+                setClickedLocation(coords);
+                setShowOptions(true); // trigger popup for range or neighborhood
+              } catch (err) {
+                alert("Failed to find address.");
+              }
+            }
+          }}>
+            Select by Address
+          </button>
+          <button onClick={() => alert("Click anywhere on the map to choose a point.")}>
+            Select by Map Click
+          </button>
+        </div>
+        <button
+          className={styles.recenterButton}
+          onClick={() => {
+            const map = window._leafletMap;
+            if (map && location.latitude && location.longitude) {
+              map.setView([location.latitude, location.longitude], 13); // Center the map on the user's current location
+            } else {
+              alert("Current location is not available.");
+            }
+          }}
+        >
+          📍 Recenter
+        </button>
+        <MapContainer 
+          center={[location.latitude, location.longitude]}
+          zoom={13}
+          whenCreated={(mapInstance) => {
+            window._leafletMap = mapInstance; // 👈 expose map for recentering
+          }}
+        >
           <TileLayer
             attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>  | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />     
-           <RecenterMap lat={location.latitude} lng={location.longitude} />
-                
-          {markers.map(marker => (
-            <Marker position={marker.geocode} icon={customIcon}>
-              <Popup>{marker.popUp}</Popup>
+            {/*<RecenterMap lat={location.latitude} lng={location.longitude} />*/}
+            <MapClickHandler onMapClick={handleMapClick} /> 
+
+            {/* Render neighborhoods if "Show Hoods" is checked */}
+            {showHoods &&
+              neighborhoods.map((hood, idx) => (
+                <GeoJSON
+                  key={idx}
+                  data={hood}
+                  style={{
+                    color: "blue", // Border color
+                    weight: 2, // Border thickness
+                    fillColor: "blue", // Fill color
+                    fillOpacity: 0.2, // Translucent fill
+                  }}
+                />
+              ))}              
+           {/* Render markers based on display mode */}
+          {/* 1. Show category markers when in categories mode */}
+          {displayMode === 'categories' && Object.entries(locationsByCategory).map(([category, features]) => (
+            visibleCategories.includes(category) && (
+              <LayerGroup key={category}>
+                {features.map((feature, idx) => (
+                  <Marker
+                    key={`${category}-${idx}`}
+                    position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
+                    icon={categoryIcons[category] || categoryIcons.default}
+                  >
+                    <Popup>
+                      <strong>{feature.properties.loc_name}</strong>
+                      <br />
+                      {feature.properties.description}
+                    </Popup>
+                  </Marker>
+                ))}
+              </LayerGroup>
+            )
+          ))}
+            
+          {/* 2. Show all locations or query results when in those modes */}
+          {(displayMode === 'all' || displayMode === 'query') && Object.entries(displayedLocations).map(([category, features] ) => (
+            <LayerGroup key={category}>
+              {features.map((feature, idx) => (
+            <Marker
+            key={`${category}-${idx}`}
+              position={[
+                feature.geometry.coordinates[1],
+                feature.geometry.coordinates[0]
+              ]}
+              icon={categoryIcons[feature.properties?.category] || categoryIcons.default}
+            >
+              <Popup>
+                <strong>{feature.properties?.loc_name}</strong>
+                <br />
+                {feature.properties?.description}
+              </Popup>
             </Marker>
           ))}
+          </LayerGroup>
+        ))}        
       </MapContainer>
+      {showOptions && clickedLocation && (
+        <MapClickPopup 
+          latlng={clickedLocation}
+          onSelectOption={(option, range) => {
+            handleUserChoice(clickedLocation, option, range);
+            setShowOptions(false);
+          }}
+          onClose={() => setShowOptions(false)}
+        />
+      )}
         </div>
         <div className={styles.footer}></div>
       </div>      

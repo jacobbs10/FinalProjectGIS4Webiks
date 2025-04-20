@@ -28,10 +28,7 @@ const AdminUsers = () => {
     setEditedUser({ ...user });
   };
   const token = sessionStorage.getItem("token");
-
-
-
-
+  const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     const raw = sessionStorage.getItem("user");
@@ -58,7 +55,7 @@ const AdminUsers = () => {
     useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users", {
+        const res = await axios.get(`${BASE_URL}/api/users`, {
           headers: {
               'Authorization': `${token}`,
               'Content-Type': 'application/json'
@@ -125,7 +122,7 @@ const AdminUsers = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:5000/api/users/register", newUserEntry);
+      const res = await axios.post(`${BASE_URL}/api/users/register`, newUserEntry);
       const updated = [...allUsers, res.data.user || newUserEntry];
       setAllUsers(updated);
       setUsers(updated);
@@ -160,7 +157,7 @@ const AdminUsers = () => {
     };
 
     try {
-      await axios.put(`http://localhost:5000/api/users/${editingUserId}`, updatedUser);
+      await axios.put(`${BASE_URL}/api/users/${editingUserId}`, updatedUser);
       const updatedList = allUsers.map((u) => (u._id === editingUserId ? updatedUser : u));
       setAllUsers(updatedList);
       setUsers(updatedList);
@@ -179,7 +176,7 @@ const AdminUsers = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/users/${id}`);
+      await axios.delete(`${BASE_URL}/api/users/${id}`);
       const updatedList = allUsers.filter((u) => u._id !== id);
       setAllUsers(updatedList);
       setUsers(updatedList);

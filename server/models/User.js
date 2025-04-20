@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['Viewer', 'Confidential', 'Admin'],
     default: 'Viewer'
+  },
+  user_status: {
+    type: Boolean,
+    default: true // all 
   }
 }, {
   timestamps: true

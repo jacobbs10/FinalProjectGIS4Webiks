@@ -28,7 +28,9 @@ router.post('/register', async (req, res) => {
       user_lastname,
       user_cellphone,
       user_email,
-      password
+      password,
+      role: req.body.role || 'Viewer',
+      user_status: req.body.user_status !== undefined ? req.body.user_status : true
     });
 
     await user.save();

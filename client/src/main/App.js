@@ -523,8 +523,11 @@ const getFilteredLocations = (locations) => {
         </nav>
         </div>
         <div className={styles.middle}>
-        <div className={styles.layerPanelWrapper}>
-          <button 
+        {/*<div className={styles.layerPanelWrapper}>
+          
+        </div>*/}
+        <div className={styles.mapControls}>
+        <button 
             onClick={() => setShowLayerPanel(prev => !prev)} 
             className={styles.layerToggleButton}
           >
@@ -546,14 +549,13 @@ const getFilteredLocations = (locations) => {
             ))}
           </div>
           )}
-        </div>
-        <div className={styles.mapControls}>
         <button
           onClick={handleClearLocations}
+          className={styles.layerToggleButton}
         >
           Clear Locations
         </button>
-        <button onClick={handleShowAllLocations}>
+        <button onClick={handleShowAllLocations} className={styles.layerToggleButton}>
             Show All Locations
           </button>
           <button onClick={async () => {
@@ -567,10 +569,10 @@ const getFilteredLocations = (locations) => {
                 alert("Failed to find address.");
               }
             }
-          }}>
+          }} className={styles.layerToggleButton}>
             Select by Address
           </button>
-          <button onClick={() => alert("Click anywhere on the map to choose a point.")}>
+          <button onClick={() => alert("Click anywhere on the map to choose a point.")} className={styles.layerToggleButton}>
             Select by Map Click
           </button>
         </div>

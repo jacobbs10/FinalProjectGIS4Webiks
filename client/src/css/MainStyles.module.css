@@ -554,13 +554,16 @@ form {
 }
 
 .legend {
+  display: flex; /* Align items horizontally */
+  flex-wrap: wrap; /* Allow wrapping to the next line if needed */
+  gap: 3px;
   background: white;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 3px;
+  border-radius: 4px;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
   position: absolute;
-  top: 0px;
-  left: 100px;
+  top: 130px;
+  left: 20px;
   z-index: 1000;
 }
 .legendItem {

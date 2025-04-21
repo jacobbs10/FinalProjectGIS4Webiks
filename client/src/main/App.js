@@ -82,13 +82,13 @@ function App() {
   const [displayMode, setDisplayMode] = useState('categories'); // 'categories', 'all', 'query'
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
   const categoryIcons = {
-    Restroom: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Restaurant: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Shop: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Shelter: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Park: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Museum: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Other: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Restrooms: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Restaurants: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Shops: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Shelters: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Parks: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Museums: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Others: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
     // fallback/default
     default: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
   };
@@ -628,9 +628,42 @@ const getFilteredLocations = (locations) => {
                     icon={categoryIcons[category] || categoryIcons.default}
                   >
                     <Popup>
-                      <strong>{feature.properties.loc_name}</strong>
-                      <br />
-                      {feature.properties.description}
+                      <div>
+                        <p><strong>{feature.properties.loc_name}</strong></p>
+                        {feature.properties.photo && (
+                          <img
+                            src={feature.properties.photo}
+                            alt={feature.properties.loc_name}
+                            style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}
+                          />
+                        )}
+                        <p><strong>Description:</strong> {feature.properties.description}</p>
+                        {feature.properties.address && (
+                          <p>
+                            <strong>Address:</strong> {feature.properties.address}
+                          </p>
+                        )}
+                        {feature.properties.phone && (
+                          <p>
+                            <strong>Phone:</strong> {feature.properties.phone}
+                          </p>
+                        )}
+                        {feature.properties.email && (
+                          <p>
+                            <strong>Email:</strong> {feature.properties.email}
+                          </p>
+                        )}
+                        {feature.properties.Site && (
+                          <p>
+                            <strong>Site:</strong> {feature.properties.Site}
+                          </p>
+                        )}
+                        {feature.properties.category && (
+                          <p>
+                            <strong>Category:</strong> {feature.properties.category}
+                          </p>
+                        )}
+                      </div>
                     </Popup>
                   </Marker>
                 ))}
@@ -650,11 +683,44 @@ const getFilteredLocations = (locations) => {
               ]}
               icon={categoryIcons[feature.properties?.category] || categoryIcons.default}
             >
-              <Popup>
-                <strong>{feature.properties?.loc_name}</strong>
-                <br />
-                {feature.properties?.description}
-              </Popup>
+            <Popup>
+              <div>
+                <p><strong>{feature.properties.loc_name}</strong></p>
+                {feature.properties.photo && (
+                  <img
+                    src={feature.properties.photo}
+                    alt={feature.properties.loc_name}
+                    style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}
+                  />
+                )}
+                <p><strong>Description:</strong> {feature.properties.description}</p>
+                {feature.properties.address && (
+                  <p>
+                    <strong>Address:</strong> {feature.properties.address}
+                  </p>
+                )}
+                {feature.properties.phone && (
+                  <p>
+                    <strong>Phone:</strong> {feature.properties.phone}
+                  </p>
+                )}
+                {feature.properties.email && (
+                  <p>
+                    <strong>Email:</strong> {feature.properties.email}
+                  </p>
+                )}
+                {feature.properties.Site && (
+                  <p>
+                    <strong>Site:</strong> {feature.properties.Site}
+                  </p>
+                )}
+                {feature.properties.category && (
+                  <p>
+                    <strong>Category:</strong> {feature.properties.category}
+                  </p>
+                )}
+              </div>
+            </Popup>
             </Marker>
           ))}
           </LayerGroup>

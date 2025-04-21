@@ -5,9 +5,10 @@ import FixedHeader from "../components/FixedHeader";
 import styles from "../css/MainStyles.module.css";
 
 const AdminUsers = () => {
-   const [searchEmail, setSearchEmail] = useState("");
+  const [searchEmail, setSearchEmail] = useState("");
   const [pageLimit, setPageLimit] = useState(10);
-  const [sortBy, setSortBy] = useState("");
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
   const [allUsers, setAllUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
@@ -55,24 +56,26 @@ const AdminUsers = () => {
   
   
 
-    useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/users", {
-          headers: {
-              'Authorization': `${token}`,
-              'Content-Type': 'application/json'
-          }
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/users", {
+        headers: {
+          'Authorization': `${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-        setAllUsers(res.data);
-        setUsers(res.data);
-      } catch (err) {
-        console.error("❌ Failed to fetch users:", err);
-        alert("Error loading users from server.");
-      }
-    };
+      setAllUsers(res.data);
+      setUsers(res.data);
+    } catch (err) {
+      console.error("❌ Failed to fetch users:", err);
+      alert("Error loading users from server.");
+    }
+  };
+  
+  useEffect(() => {
     fetchUsers();
   }, []);
+  
 
   const validateNewUser = () => {
     const { username, password, user_firstname, user_lastname, user_cellphone, user_email } = newUser;
@@ -98,37 +101,44 @@ const AdminUsers = () => {
   };
 
   const handleSearch = () => {
-    const keyword = searchEmail.toLowerCase();
+    const keyword = searchEmail.trim().toLowerCase();
+  
+    if (!keyword) {
+      setUsers(allUsers);
+      return;
+    }
+  
     const filtered = allUsers.filter((user) =>
       Object.values(user).some((value) =>
-        value.toString().toLowerCase().includes(keyword)
+        value?.toString().toLowerCase().includes(keyword)
       )
     );
+  
     setUsers(filtered);
   };
+  
 
   const handleReset = () => {
     setSearchEmail("");
     setUsers(allUsers);
   };
+  
 
   const handleAddUser = async () => {
     if (!validateNewUser()) return;
-
+  
     const today = new Date().toISOString().split("T")[0];
     const newUserEntry = {
       ...newUser,
-      user_type: "viewer",
+      role: newUser.user_type || "viewer",
       user_status: newUser.user_status ? "Active" : "Inactive",
       user_created: today,
       user_modified: today,
     };
-
+  
     try {
-      const res = await axios.post("http://localhost:5000/api/users/register", newUserEntry);
-      const updated = [...allUsers, res.data.user || newUserEntry];
-      setAllUsers(updated);
-      setUsers(updated);
+      await axios.post("http://localhost:5000/api/auth/register", newUserEntry);
+      await fetchUsers(); // ✅ this brings the fresh, complete list from backend
       setNewUser({
         username: "",
         password: "",
@@ -142,6 +152,7 @@ const AdminUsers = () => {
       alert("Error adding user: " + (err.response?.data?.message || err.message));
     }
   };
+  
 
 
 
@@ -153,23 +164,41 @@ const AdminUsers = () => {
 
   const handleSave = async () => {
     const today = new Date().toISOString().split("T")[0];
+  
     const updatedUser = {
-      ...editedUser,
-      user_status: editedUser.user_status === true || editedUser.user_status === "Active" ? "Active" : "Inactive",
+      username: editedUser.username,
+      user_firstname: editedUser.user_firstname,
+      user_lastname: editedUser.user_lastname,
+      user_cellphone: editedUser.user_cellphone,
+      user_email: editedUser.user_email,
+      role: editedUser.user_type || editedUser.role || "viewer",
+      user_status:
+        editedUser.user_status === true || editedUser.user_status === "Active"
+          ? true
+          : false,
       user_modified: today,
     };
-
+  
     try {
-      await axios.put(`http://localhost:5000/api/users/${editingUserId}`, updatedUser);
-      const updatedList = allUsers.map((u) => (u._id === editingUserId ? updatedUser : u));
-      setAllUsers(updatedList);
-      setUsers(updatedList);
+      await axios.put(
+        `http://localhost:5000/api/users/${editingUserId}`,
+        updatedUser,
+        {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      await fetchUsers(); // ✅ refreshes full list
       setEditingUserId(null);
       setEditedUser({});
     } catch (err) {
       alert("Error updating user: " + (err.response?.data?.message || err.message));
     }
   };
+  
 
   const handleCancel = () => {
     setEditingUserId(null);
@@ -178,15 +207,20 @@ const AdminUsers = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
+  
     try {
-      await axios.delete(`http://localhost:5000/api/users/${id}`);
-      const updatedList = allUsers.filter((u) => u._id !== id);
-      setAllUsers(updatedList);
-      setUsers(updatedList);
+      await axios.delete(`http://localhost:5000/api/users/${id}`, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+  
+      await fetchUsers(); // refresh list after delete
     } catch (err) {
       alert("Error deleting user: " + (err.response?.data?.message || err.message));
     }
   };
+  
 
   if (!authorized) return null;
 
@@ -194,7 +228,7 @@ const AdminUsers = () => {
     <div>
       <FixedHeader title="Admin User Management" />
       <div className={styles.adminPanel}>
-        <h2>All Users</h2>
+        <h2>Manage All Users</h2> <br /> <br />
 
 
         <div className={styles.toolbar}>
@@ -204,7 +238,13 @@ const AdminUsers = () => {
     value={searchEmail}
     onChange={(e) => setSearchEmail(e.target.value)}
   />
-  <button onClick={handleSearch}>Search</button>
+  <button
+    onClick={handleSearch}
+    disabled={searchEmail.trim() === ""}
+  >
+    Search
+  </button>
+
   <button onClick={handleReset}>Clear</button>
 
   <select
@@ -216,12 +256,24 @@ const AdminUsers = () => {
     <option value={50}>Page Limit: 50</option>
   </select>
 
-  <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-    <option value="">Sort By</option>
-    <option value="user_type">User Type</option>
-    <option value="user_created">Created Date</option>
-    <option value="user_status">Status</option>
-  </select>
+  <select
+  value={sortField || ""}
+  onChange={(e) => {
+    const field = e.target.value;
+    if (field === sortField) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  }}
+>
+  <option value="">Sort By</option>
+  <option value="role">User Type</option>
+  <option value="user_modified">Modified Date</option>
+  <option value="user_status">Status</option>
+</select>
+
 </div>
 
 
@@ -290,15 +342,18 @@ const AdminUsers = () => {
     />
   </td>
   <td>
-    <select
-      name="user_type"
-      value={newUser.user_type}
-      onChange={(e) => setNewUser({ ...newUser, user_type: e.target.value })}
-    >
-      <option value="viewer">Viewer</option>
-      <option value="admin">Admin</option>
-    </select>
-  </td>
+  {/* <select
+    name="user_type"
+    value={newUser.user_type}
+    onChange={(e) => setNewUser({ ...newUser, user_type: e.target.value })}
+  >
+    <option value="Viewer">Viewer</option>
+    <option value="Admin">Admin</option>
+    <option value="Confidential">Confidential</option>
+  </select> */}
+  {newUser.user_type || "Viewer"}
+</td>
+
   <td>
     <input
       type="checkbox"
@@ -318,7 +373,17 @@ const AdminUsers = () => {
 
 
      
-{allUsers.map((user) => (
+{[...users]
+  .sort((a, b) => {
+    if (!sortField) return 0;
+    const aVal = (a[sortField] || "").toString().toLowerCase();
+    const bVal = (b[sortField] || "").toString().toLowerCase();
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  })
+  .map((user) => (
+
   <tr key={user._id}>
     {editingUserId === user._id ? (
       <>
@@ -329,11 +394,14 @@ const AdminUsers = () => {
         <td><input name="user_cellphone" value={editedUser.user_cellphone} onChange={handleEditChange} /></td>
         <td><input name="user_email" value={editedUser.user_email} onChange={handleEditChange} /></td>
         <td>
-          <select name="user_type" value={editedUser.user_type} onChange={handleEditChange}>
-            <option value="viewer">Viewer</option>
-            <option value="admin">Admin</option>
-          </select>
-        </td>
+  {/* <select name="user_type" value={editedUser.user_type} onChange={handleEditChange}>
+    <option value="Viewer">Viewer</option>
+    <option value="Admin">Admin</option>
+    <option value="Confidential">Confidential</option>
+  </select> */}
+  {editedUser.user_type || editedUser.role}
+</td>
+
         <td><input type="checkbox" name="user_status" checked={editedUser.user_status} onChange={(e) => setEditedUser({...editedUser, user_status: e.target.checked})} /></td>
         <td>{editedUser.user_created}</td>
         <td>{editedUser.user_modified}</td>
@@ -350,14 +418,35 @@ const AdminUsers = () => {
         <td>{user.user_lastname}</td>
         <td>{user.user_cellphone}</td>
         <td>{user.user_email}</td>
-        <td>{user.user_type}</td>
+        <td>{user.role || user.user_type || ''}</td>
         <td>{user.user_status ? "Active" : "Inactive"}</td>
-        <td>{user.user_created}</td>
-        <td>{user.user_modified}</td>
-        <td>
-          <button onClick={() => handleEditClick(user)} className={styles.editButton}>Edit</button>
-          <button onClick={() => handleDelete(user._id)} className={styles.deleteButton}>Delete</button>
-        </td>
+        <td>{user.user_created
+  ? user.user_created
+  : user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-GB")
+    : ''}</td>
+
+<td>{user.user_modified
+  ? user.user_modified
+  : user.updatedAt
+    ? new Date(user.updatedAt).toLocaleDateString("en-GB")
+    : ''}</td>
+
+<td>
+  {user.role !== "Admin" ? (
+    <>
+      <button onClick={() => handleEditClick(user)} className={styles.editButton}>
+        Edit
+      </button>
+      <button onClick={() => handleDelete(user._id)} className={styles.deleteButton}>
+        Delete
+      </button>
+    </>
+  ) : (
+    <span style={{ color: "#888", fontStyle: "italic" }}>🔒 Admin</span>
+  )}
+</td>
+
       </>
     )}
   </tr>

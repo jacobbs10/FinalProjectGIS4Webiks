@@ -263,7 +263,7 @@ router.get("/location/:id", authMiddleware, async (req, res) => {
 router.post("/location", authMiddleware, isAdmin, async (req, res) => {
     try {
       // Extract data from request body
-      const { id, category, loc_name, address, description, restricted, email, phone, site, coordinates } = req.body;
+      const { id, category, loc_name, address, description, restricted, email, phone, site, loc_status, photo, coordinates } = req.body;
       
       // Validate required fields
       if (!category || !loc_name || !address || !description || !coordinates) {
@@ -302,7 +302,9 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
             restricted: restricted,
             email: email,
             phone: phone,
-            site: site
+            site: site,
+            loc_status: loc_status,
+            photo: photo
         },
         geometry: {
           type: "Point",
@@ -346,7 +348,7 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
         const errors = [];
 
         for (const n of locations) {
-            const { id, category, loc_name, address, description, restricted, email, phone, site, coordinates } = n;
+            const { id, category, loc_name, address, description, restricted, email, phone, site, loc_status, photo, coordinates } = n;
 
             if (existingIds.has(id)) {
                 errors.push({ id, error: 'Location ID already exists' });
@@ -360,7 +362,7 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
 
             toInsert.push({
                 type: "Feature",
-                properties: { id,category, loc_name, address, description, restricted, email, phone, site },
+                properties: { id,category, loc_name, address, description, restricted, email, phone, site, loc_status, photo },
                 geometry: {
                     type: "Point",
                     coordinates: coordinates
@@ -398,7 +400,7 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
 
 // Update location
 router.put("/location", authMiddleware, isAdmin, async (req, res) => {
-    const { id, category, loc_name, address, description, restricted, email, phone, site, coordinates } = req.body;
+    const { id, category, loc_name, address, description, restricted, email, phone, site, loc_status, coordinates } = req.body;
     if (!id) {
         return res.status(400).json({ message: "ID of the location is required" });
     }
@@ -414,6 +416,8 @@ router.put("/location", authMiddleware, isAdmin, async (req, res) => {
                 'properties.email': email,
                 'properties.phone': phone,
                 'properties.site': site,
+                'properties.loc_status': loc_status,
+                'properties.photo': photo,
                 'geometry.coordinates': coordinates              
             }
         };

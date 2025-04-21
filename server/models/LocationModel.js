@@ -9,7 +9,7 @@ const PropertiesSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-        enum: ['Restroom', 'Shelter', 'Restaurant', 'Park', 'Museum', 'Shop', 'Other']
+        enum: ['Restrooms', 'Shelters', 'Restaurants', 'Parks', 'Museums', 'Shops', 'Others']
     },    
     loc_name: {
     type: String,
@@ -57,6 +57,16 @@ const PropertiesSchema = new mongoose.Schema({
     Site: {
         type: String,
         required: false
+    },
+    loc_status: {
+        type: String,
+        required: true,
+        default: 'Active',
+        enum: ['Active', 'Suspended', 'Removed']
+    },
+    photo: {
+        type: String,
+        required: false       
     }
   
 }, { _id: false }); // Disable _id for subdocuments

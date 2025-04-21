@@ -21,7 +21,7 @@ router.get("/", authMiddleware, async (req, res) => {
         const skip = (page - 1) * size;
 
         // Determine query based on user role
-        const query = req.user && (req.user.role === 'Advanced' || req.user.role === 'Admin')
+        const query = req.user && (req.user.role === 'Confidential' || req.user.role === 'Admin')
             ? {} // Fetch all records
             : { 'properties.restricted': false }; // Fetch only non-restricted records
 
@@ -60,7 +60,7 @@ router.get("/", authMiddleware, async (req, res) => {
 router.get("/all", authMiddleware, async (req, res) => {
     try {
         // Determine query based on user role
-        const query = req.user && (req.user.role === 'Advanced' || req.user.role === 'Admin')
+        const query = req.user && (req.user.role === 'Confidential' || req.user.role === 'Admin')
             ? {} // Fetch all records
             : { 'properties.restricted': false }; // Fetch only non-restricted records
 
@@ -93,8 +93,8 @@ router.get("/cat", authMiddleware, async (req, res) => {
         // Determine query based on user role
         const query = {
             'properties.category': { $in: categories },
-            ...(req.user && (req.user.role === 'Advanced' || req.user.role === 'Admin')
-                ? {} // Fetch all records for Advanced/Admin users
+            ...(req.user && (req.user.role === 'Confidential' || req.user.role === 'Admin')
+                ? {} // Fetch all records for Confidential/Admin users
                 : { 'properties.restricted': false } // Fetch only non-restricted records for other users
             )
         };
@@ -116,7 +116,10 @@ router.get("/cat", authMiddleware, async (req, res) => {
 // Get locations by area
 router.post("/area", authMiddleware, async (req, res) => {
     try {
-        const { coordinates, categories } = req.body;
+        const { categories } = req.body;
+        const coordinates = Array.isArray(req.body.coordinates?.[0])
+        ? req.body.coordinates[0]
+        : req.body.coordinates;
 
         // Validate that coordinates is an array and forms a valid polygon
         if (!Array.isArray(coordinates) || coordinates.length < 4) {
@@ -155,8 +158,8 @@ router.post("/area", authMiddleware, async (req, res) => {
                     }
                 }
             },
-            ...(req.user && (req.user.role === 'Advanced' || req.user.role === 'Admin')
-                ? {} // Fetch all records for Advanced/Admin users
+            ...(req.user && (req.user.role === 'Confidential' || req.user.role === 'Admin')
+                ? {} // Fetch all records for Confidential/Admin users
                 : { 'properties.restricted': false }), // Fetch only non-restricted records for other users
             ...categoryFilter // Apply category filter if provided
         };
@@ -216,8 +219,8 @@ router.post("/range", authMiddleware, async (req, res) => {
                     $maxDistance: range // Range in meters
                 }
             },
-            ...(req.user && (req.user.role === 'Advanced' || req.user.role === 'Admin')
-                ? {} // Fetch all records for Advanced/Admin users
+            ...(req.user && (req.user.role === 'Confidential' || req.user.role === 'Admin')
+                ? {} // Fetch all records for Confidential/Admin users
                 : { 'properties.restricted': false }), // Fetch only non-restricted records for other users
             ...categoryFilter // Apply category filter if provided
         };

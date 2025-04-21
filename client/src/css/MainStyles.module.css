@@ -892,4 +892,24 @@ form {
   width: 100%;
 }
 
+/*-----------------------
+  Map design
+------------------------*/
+.recenterButton {
+  position: absolute;
+  top: 100px;
+  right: 20px;
+  z-index: 1000;
+  background-color: white;
+  padding: 8px 12px;
+  border: 1px solid gray;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mapControls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 

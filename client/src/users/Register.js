@@ -15,6 +15,8 @@ const Register = () => {
 
   const navigate = useNavigate();
 
+  const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const cleanedValue =

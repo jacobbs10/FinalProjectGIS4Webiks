@@ -13,6 +13,7 @@ const FixedHeader = ({ title = "GIS4Webiks" }) => {
     <header className={styles.fixedHeader}>
       <div className={styles.headerContent}>
         <h1>{title}</h1>
+        <button onClick={() => window.location.href = "/"}>Home</button>        
         <button onClick={handleLogout}>Log Out</button>
       </div>
     </header>

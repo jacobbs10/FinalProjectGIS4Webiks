@@ -7,8 +7,7 @@ import styles from "../css/MainStyles.module.css";
 const AdminUsers = () => {
   const [searchEmail, setSearchEmail] = useState("");
   const [pageLimit, setPageLimit] = useState(10);
-  const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortBy, setSortBy] = useState("");
   const [allUsers, setAllUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
@@ -30,9 +29,7 @@ const AdminUsers = () => {
   };
   const token = sessionStorage.getItem("token");
 
-
-
-
+  const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     const raw = sessionStorage.getItem("user");
@@ -58,7 +55,7 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/users", {
+      const res = await axios.get(`${BASE_URL}/api/users`, {
         headers: {
           'Authorization': `${token}`,
           'Content-Type': 'application/json'
@@ -137,7 +134,7 @@ const AdminUsers = () => {
     };
   
     try {
-      await axios.post("http://localhost:5000/api/auth/register", newUserEntry);
+      const res = await axios.post(`${BASE_URL}/api/users/register`, newUserEntry);
       await fetchUsers(); // ✅ this brings the fresh, complete list from backend
       setNewUser({
         username: "",
@@ -180,18 +177,10 @@ const AdminUsers = () => {
     };
   
     try {
-      await axios.put(
-        `http://localhost:5000/api/users/${editingUserId}`,
-        updatedUser,
-        {
-          headers: {
-            Authorization: `${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-  
-      await fetchUsers(); // ✅ refreshes full list
+      await axios.put(`${BASE_URL}/api/users/${editingUserId}`, updatedUser);
+      const updatedList = allUsers.map((u) => (u._id === editingUserId ? updatedUser : u));
+      setAllUsers(updatedList);
+      setUsers(updatedList);
       setEditingUserId(null);
       setEditedUser({});
     } catch (err) {
@@ -209,13 +198,10 @@ const AdminUsers = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
   
     try {
-      await axios.delete(`http://localhost:5000/api/users/${id}`, {
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
-  
-      await fetchUsers(); // refresh list after delete
+      await axios.delete(`${BASE_URL}/api/users/${id}`);
+      const updatedList = allUsers.filter((u) => u._id !== id);
+      setAllUsers(updatedList);
+      setUsers(updatedList);
     } catch (err) {
       alert("Error deleting user: " + (err.response?.data?.message || err.message));
     }
@@ -256,24 +242,12 @@ const AdminUsers = () => {
     <option value={50}>Page Limit: 50</option>
   </select>
 
-  <select
-  value={sortField || ""}
-  onChange={(e) => {
-    const field = e.target.value;
-    if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  }}
->
-  <option value="">Sort By</option>
-  <option value="role">User Type</option>
-  <option value="user_modified">Modified Date</option>
-  <option value="user_status">Status</option>
-</select>
-
+  <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+    <option value="">Sort By</option>
+    <option value="user_type">User Type</option>
+    <option value="user_created">Created Date</option>
+    <option value="user_status">Status</option>
+  </select>
 </div>
 
 
@@ -373,17 +347,7 @@ const AdminUsers = () => {
 
 
      
-{[...users]
-  .sort((a, b) => {
-    if (!sortField) return 0;
-    const aVal = (a[sortField] || "").toString().toLowerCase();
-    const bVal = (b[sortField] || "").toString().toLowerCase();
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  })
-  .map((user) => (
-
+{users.map((user) => (
   <tr key={user._id}>
     {editingUserId === user._id ? (
       <>

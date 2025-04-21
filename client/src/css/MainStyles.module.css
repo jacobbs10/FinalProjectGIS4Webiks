@@ -662,6 +662,8 @@ form {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
+  color: black; /* Ensure the text color is visible */
+  font-size: 14px;
 }
 
 /*----------------------

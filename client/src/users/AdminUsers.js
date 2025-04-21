@@ -134,7 +134,7 @@ const AdminUsers = () => {
   
     try {
       const res = await axios.post(`${BASE_URL}/api/users/register`, newUserEntry);
-      await fetchUsers(); // ✅ this brings the fresh, complete list from backend
+      //await fetchUsers(); // ✅ this brings the fresh, complete list from backend
       const updated = [...allUsers, res.data.user || newUserEntry];
       setAllUsers(updated);
       setUsers(updated);

@@ -114,10 +114,10 @@ export const processBulkHoods = async (fileContent) => {
             throw new Error('No authentication token found');
         }
 
-        const PORT = sessionStorage.getItem("PORT") || 5000;
+        const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
         // Send to server
-        const response = await axios.post(`http://localhost:${PORT}/api/hood/bulk`, hoods, {
+        const response = await axios.post(`${BASE_URL}/api/hood/bulk`, hoods, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `${token}`,

@@ -69,13 +69,18 @@ const Register = () => {
 
     // ✅ Real backend call using Axios
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/register`, formData);
-      alert("✅ " + res.data.message);
+      const res = await axios.post(`${BASE_URL}/api/auth/register`, {
+        ...formData,
+        user_status: true,     // ✅ added
+        role: "Viewer"         // ✅ added
+      });
+      alert("✅ Registration Successful !");
       navigate("/login");
     } catch (err) {
       const msg = err.response?.data?.message || "Registration failed.";
       alert("❌ " + msg);
     }
+    
   };
 
   return (

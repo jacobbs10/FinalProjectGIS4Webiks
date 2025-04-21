@@ -121,7 +121,6 @@ router.post("/area", authMiddleware, async (req, res) => {
         ? req.body.coordinates[0]
         : req.body.coordinates;
 
-
         // Validate that coordinates is an array and forms a valid polygon
         if (!Array.isArray(coordinates) || coordinates.length < 4) {
             return res.status(400).json({

@@ -28,7 +28,6 @@ const AdminUsers = () => {
     setEditedUser({ ...user });
   };
   const token = sessionStorage.getItem("token");
-
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
@@ -53,13 +52,14 @@ const AdminUsers = () => {
   
   
 
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/api/users`, {
-        headers: {
-          'Authorization': `${token}`,
-          'Content-Type': 'application/json'
-        }
+    useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/users`, {
+          headers: {
+              'Authorization': `${token}`,
+              'Content-Type': 'application/json'
+          }
       });
       setAllUsers(res.data);
       setUsers(res.data);
@@ -69,7 +69,6 @@ const AdminUsers = () => {
     }
   };
   
-  useEffect(() => {
     fetchUsers();
   }, []);
   
@@ -136,6 +135,9 @@ const AdminUsers = () => {
     try {
       const res = await axios.post(`${BASE_URL}/api/users/register`, newUserEntry);
       await fetchUsers(); // ✅ this brings the fresh, complete list from backend
+      const updated = [...allUsers, res.data.user || newUserEntry];
+      setAllUsers(updated);
+      setUsers(updated);
       setNewUser({
         username: "",
         password: "",

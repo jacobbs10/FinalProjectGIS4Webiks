@@ -646,13 +646,16 @@ form {
 }
 
 .legend {
+  display: flex; /* Align items horizontally */
+  flex-wrap: wrap; /* Allow wrapping to the next line if needed */
+  gap: 3px;
   background: white;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 3px;
+  border-radius: 4px;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
   position: absolute;
-  top: 0px;
-  left: 100px;
+  top: 130px;
+  left: 20px;
   z-index: 1000;
 }
 .legendItem {
@@ -900,11 +903,21 @@ form {
   top: 100px;
   right: 20px;
   z-index: 1000;
+  width: 20px; /* Set the width of the button */
+  height: 20px; /* Set the height of the button */
   background-color: white;
-  padding: 8px 12px;
   border: 1px solid gray;
-  border-radius: 4px;
+  border-radius: 50%; /* Make it circular */
   cursor: pointer;
+  background-image: url('../icons/crosshair2.png'); /* Path to your image */
+  background-size: cover; /* Ensure the image covers the button */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Prevent tiling */
+  transition: transform 0.2s;
+}
+
+.recenterButton:hover {
+  transform: scale(1.1); /* Slight zoom effect on hover */
 }
 
 .mapControls {
@@ -912,4 +925,3 @@ form {
   gap: 10px;
   margin-bottom: 10px;
 }
-

@@ -30,6 +30,7 @@ const AdminUsers = () => {
   const token = sessionStorage.getItem("token");
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
+
   useEffect(() => {
     const raw = sessionStorage.getItem("user");
     if (!raw) {
@@ -47,19 +48,14 @@ const AdminUsers = () => {
     setAuthorized(true); // ✅ only happens for real admins
   }, [navigate]);
   
-  
 
-  
-  
-
-    useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/users`, {
-          headers: {
-              'Authorization': `${token}`,
-              'Content-Type': 'application/json'
-          }
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/users`, {
+        headers: {
+          'Authorization': `${token}`,
+          'Content-Type': 'application/json'
+        }
       });
       setAllUsers(res.data);
       setUsers(res.data);
@@ -69,6 +65,7 @@ const AdminUsers = () => {
     }
   };
   
+  useEffect(() => {
     fetchUsers();
   }, []);
   
@@ -126,18 +123,15 @@ const AdminUsers = () => {
     const today = new Date().toISOString().split("T")[0];
     const newUserEntry = {
       ...newUser,
-      role: newUser.user_type || "viewer",
-      user_status: newUser.user_status ? "Active" : "Inactive",
+      role: newUser.user_type || "Viewer",
+      user_status: newUser.user_status ? true : false,
       user_created: today,
       user_modified: today,
     };
   
     try {
-      const res = await axios.post(`${BASE_URL}/api/users/register`, newUserEntry);
-      //await fetchUsers(); // ✅ this brings the fresh, complete list from backend
-      const updated = [...allUsers, res.data.user || newUserEntry];
-      setAllUsers(updated);
-      setUsers(updated);
+      await axios.post(`${BASE_URL}/api/auth/register`, newUserEntry);
+      await fetchUsers(); // ✅ this brings the fresh, complete list from backend
       setNewUser({
         username: "",
         password: "",
@@ -179,10 +173,18 @@ const AdminUsers = () => {
     };
   
     try {
-      await axios.put(`${BASE_URL}/api/users/${editingUserId}`, updatedUser);
-      const updatedList = allUsers.map((u) => (u._id === editingUserId ? updatedUser : u));
-      setAllUsers(updatedList);
-      setUsers(updatedList);
+      await axios.put(
+        `${BASE_URL}/api/users/${editingUserId}`,
+        updatedUser,
+        {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      await fetchUsers(); // ✅ refreshes full list
       setEditingUserId(null);
       setEditedUser({});
     } catch (err) {
@@ -200,10 +202,13 @@ const AdminUsers = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
   
     try {
-      await axios.delete(`${BASE_URL}/api/users/${id}`);
-      const updatedList = allUsers.filter((u) => u._id !== id);
-      setAllUsers(updatedList);
-      setUsers(updatedList);
+      await axios.delete(`h${BASE_URL}/api/users/${id}`, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+  
+      await fetchUsers(); // refresh list after delete
     } catch (err) {
       alert("Error deleting user: " + (err.response?.data?.message || err.message));
     }
@@ -417,15 +422,6 @@ const AdminUsers = () => {
     )}
   </tr>
 ))}
-
-     
-     
-     
-     
-     
-   
-
-
   </tbody>
 </table>
 

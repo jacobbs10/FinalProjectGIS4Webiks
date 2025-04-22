@@ -1,361 +1,533 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Button,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Typography,
-  Box,
-  Alert,
-  FormControlLabel,
-  Switch,
-} from '@mui/material';
-import api from '../utils/axios';
+import axios from 'axios';
+import FixedHeader from '../components/FixedHeader';
+import styles from '../css/HoodStyles.module.css';
 
 const LocationsAdmin = () => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pageLimit, setPageLimit] = useState(10);
   const [locations, setLocations] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [confirmationDialog, setConfirmationDialog] = useState({
-    open: false,
-    message: '',
-    onConfirm: null,
-  });
+  const [editingLocation, setEditingLocation] = useState(null);
+  const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
+  const [suspensionPeriod, setSuspensionPeriod] = useState(30);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [authorized, setAuthorized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // State for file upload
-  const [fileUploadError, setFileUploadError] = useState('');
+  const token = sessionStorage.getItem('token');
+  const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    // Check if user is admin
-    const checkAdminAccess = async () => {
-      try {
-        const token = sessionStorage.getItem('token');
-        const response = await api.get('/api/auth/verify-admin');
-        if (!response.data) {
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error('Auth error:', error);
-        navigate('/login');
-      }
-    };
+    const raw = sessionStorage.getItem('user');
+    if (!raw) {
+      navigate('/login');
+      return;
+    }
 
-    checkAdminAccess();
+    const user = JSON.parse(raw);
+    if (user.role !== 'Admin') {
+      alert('Access denied. Admins only.');
+      navigate('/login');
+      return;
+    }
+
+    setAuthorized(true);
     fetchLocations();
   }, [navigate]);
 
   const fetchLocations = async () => {
     try {
-      const response = await api.get('/api/locations');
-      setLocations(response.data);
-      setFilteredLocations(response.data);
+      setIsLoading(true);
+      const response = await axios.get(`${BASE_URL}/api/locs`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setLocations(response.data.locations || []);
+      setFilteredLocations(response.data.locations || []);
     } catch (error) {
       console.error('Error fetching locations:', error);
+      setError('Failed to fetch locations');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Filter and sort functions
-  useEffect(() => {
-    let filtered = [...locations];
-    
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(location =>
-        location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        location.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const handleSearch = () => {
+    const keyword = searchTerm.trim().toLowerCase();
+    if (!keyword) {
+      setFilteredLocations(locations);
+      return;
     }
 
-    // Apply sorting
-    filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-      if (sortDirection === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      }
-      return aValue < bValue ? 1 : -1;
-    });
-
+    const filtered = locations.filter(location =>
+      location.properties.loc_name.toLowerCase().includes(keyword) ||
+      location.properties.category.toLowerCase().includes(keyword)
+    );
     setFilteredLocations(filtered);
-  }, [locations, searchTerm, sortField, sortDirection]);
+  };
 
-  const handleLocationUpdate = async (locationData) => {
-    const originalPosition = selectedLocation.location.coordinates;
-    const newPosition = locationData.location.coordinates;
-    
-    // Check if position has changed
-    if (originalPosition[0] !== newPosition[0] || originalPosition[1] !== newPosition[1]) {
-      setConfirmationDialog({
-        open: true,
-        message: 'The location position has changed. Are you sure you want to update?',
-        onConfirm: async () => {
-          await updateLocation(locationData);
-          setConfirmationDialog({ open: false, message: '', onConfirm: null });
-        },
-      });
+  const handleReset = () => {
+    setSearchTerm('');
+    setFilteredLocations(locations);
+  };
+
+  const handleEditToggle = (e, location) => {
+    e.preventDefault();
+    if (editingLocation?.properties.id === location.properties.id) {
+        // Save changes when unchecking
+        handleLocationUpdate(editingLocation);
+        setEditingLocation(null);
     } else {
-      await updateLocation(locationData);
+        // Start editing when checking
+        setEditingLocation({
+            type: 'Feature',
+            properties: {
+                id: location.properties.id,
+                category: location.properties.category || 'Restaurants',
+                loc_name: location.properties.loc_name || '',
+                address: location.properties.address || '',
+                description: location.properties.description || '',
+                confidential: location.properties.confidential || false,
+                email: location.properties.email || '',
+                phone: location.properties.phone || '',
+                Site: location.properties.Site || '',
+                loc_status: location.properties.loc_status || 'Active',
+                photo: location.properties.photo || ''
+            },
+            geometry: {
+                type: 'Point',
+                coordinates: location.geometry.coordinates || [0, 0]
+            }
+        });
     }
   };
 
-  const updateLocation = async (locationData) => {
-    try {
-      const response = await api.put(`/api/locations/${locationData._id}`, locationData);
-      if (response.status === 200) {
-        fetchLocations();
-        setIsEditDialogOpen(false);
+  const handleFieldChange = (field, value) => {
+    if (!editingLocation) return;
+    
+    setEditingLocation(prev => ({
+      ...prev,
+      properties: {
+        ...prev.properties,
+        [field]: value
       }
+    }));
+  };
+
+  const handleLocationUpdate = async (location) => {
+    try {
+        const locationData = {
+            id: location.properties.id,
+            category: location.properties.category,
+            loc_name: location.properties.loc_name,
+            address: location.properties.address,
+            description: location.properties.description,
+            confidential: location.properties.confidential,
+            email: location.properties.email,
+            phone: location.properties.phone,
+            Site: location.properties.Site,
+            loc_status: location.properties.loc_status,
+            photo: location.properties.photo,
+            coordinates: location.geometry.coordinates
+        };
+
+        console.log('Updating location with data:', locationData);
+
+        const response = await fetch(`${BASE_URL}/api/locs/location`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(locationData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server response:', errorText);
+            try {
+                const errorData = JSON.parse(errorText);
+                throw new Error(errorData.message || 'Failed to update location');
+            } catch (e) {
+                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
+        }
+
+        const updatedLocation = await response.json();
+        console.log('Location updated successfully:', updatedLocation);
+        
+        // Update both locations and filteredLocations states
+        const updatedLocations = locations.map(loc => 
+            loc.properties.id === updatedLocation.properties.id ? updatedLocation : loc
+        );
+        setLocations(updatedLocations);
+        
+        // Update filteredLocations if the current search term matches the updated location
+        if (searchTerm) {
+            const keyword = searchTerm.trim().toLowerCase();
+            const filtered = updatedLocations.filter(loc =>
+                loc.properties.loc_name.toLowerCase().includes(keyword) ||
+                loc.properties.category.toLowerCase().includes(keyword)
+            );
+            setFilteredLocations(filtered);
+        } else {
+            setFilteredLocations(updatedLocations);
+        }
+
+        setIsSuspendDialogOpen(false);
+        setEditingLocation(null);
+        setSuccess('Location updated successfully');
     } catch (error) {
-      console.error('Error updating location:', error);
+        console.error('Error updating location:', error);
+        setError(error.message);
     }
   };
 
-  const handleDelete = async (locationId) => {
-    setConfirmationDialog({
-      open: true,
-      message: 'Are you sure you want to delete this location?',
-      onConfirm: async () => {
-        try {
-          await api.delete(`/api/locations/${locationId}`);
-          fetchLocations();
-        } catch (error) {
-          console.error('Error deleting location:', error);
-        }
-        setConfirmationDialog({ open: false, message: '', onConfirm: null });
+  const handleNewLocation = () => {
+    if (!locations || locations.length === 0) {
+      setError('Cannot create new location: locations not loaded');
+      return;
+    }
+
+    const newLocation = {
+      type: 'Feature',
+      properties: {
+        id: Math.max(...locations.map(l => l.properties.id), 0) + 1,
+        category: 'Restaurants',
+        loc_name: '',
+        address: '',
+        description: '',
+        confidential: false,
+        email: '',
+        phone: '',
+        Site: '',
+        loc_status: 'Active',
+        photo: ''
       },
-    });
+      geometry: {
+        type: 'Point',
+        coordinates: [0, 0]
+      }
+    };
+    setEditingLocation(newLocation);
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
+  const handleSuspend = async () => {
     try {
-      const response = await api.post('/api/locations/bulk-upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      const response = await axios.put(
+        `${BASE_URL}/api/locs/${editingLocation.properties.id}/suspend`,
+        { days: suspensionPeriod },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         }
-      });
-
-      if (response.status !== 200) {
-        throw new Error('Upload failed');
+      );
+      if (response.status === 200) {
+        setSuccess(`Location suspended for ${suspensionPeriod} days`);
+        fetchLocations();
+        setIsSuspendDialogOpen(false);
       }
-
-      fetchLocations();
-      setFileUploadError('');
     } catch (error) {
-      setFileUploadError('Error uploading file. Please try again.');
-      console.error('Upload error:', error);
+      console.error('Error suspending location:', error);
+      setError('Failed to suspend location');
     }
   };
+
+  const handleCancelMembership = async (locationId) => {
+    try {
+      const response = await axios.put(
+        `${BASE_URL}/api/locs/${locationId}/cancel-membership`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (response.status === 200) {
+        setSuccess('Location membership cancelled');
+        fetchLocations();
+      }
+    } catch (error) {
+      console.error('Error cancelling membership:', error);
+      setError('Failed to cancel membership');
+    }
+  };
+
+  if (!authorized) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <div>Loading locations...</div>;
+  }
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Locations Management
-        </Typography>
+    <div>
+      <FixedHeader title="Locations Management" />
+      <div className={styles.adminPanel}>
+        <h2>Manage Locations</h2>
 
-        {/* Search and Filter Controls */}
-        <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
-          <TextField
-            label="Search"
+        <div className={styles.toolbar}>
+          <button onClick={handleNewLocation} className={styles.addButton}>
+            New Location
+          </button>
+          <input
+            type="text"
+            placeholder="Search locations"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            size="small"
           />
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Sort By</InputLabel>
-            <Select
-              value={sortField}
-              onChange={(e) => setSortField(e.target.value)}
-              label="Sort By"
-            >
-              <MenuItem value="name">Name</MenuItem>
-              <MenuItem value="category">Category</MenuItem>
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            component="label"
+          <button onClick={handleSearch} disabled={searchTerm.trim() === ''}>
+            Search
+          </button>
+          <button onClick={handleReset}>Clear</button>
+          <select
+            value={pageLimit}
+            onChange={(e) => setPageLimit(Number(e.target.value))}
           >
-            Upload File
-            <input
-              type="file"
-              hidden
-              accept=".csv,.json"
-              onChange={handleFileUpload}
-            />
-          </Button>
-        </Box>
+            <option value={10}>Page Limit: 10</option>
+            <option value={20}>Page Limit: 20</option>
+            <option value={50}>Page Limit: 50</option>
+          </select>
+        </div>
 
-        {fileUploadError && (
-          <Alert severity="error" sx={{ mb: 2 }}>{fileUploadError}</Alert>
+        {error && (
+          <div className={styles.error}>{error}</div>
+        )}
+        {success && (
+          <div className={styles.success}>{success}</div>
         )}
 
-        {/* Locations Table */}
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Restricted</TableCell>
-                <TableCell>Coordinates</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+        <div className={styles.tableWrapper}>
+          <table className={styles.userTable}>
+            <thead>
+              <tr>
+                <th>Edit</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Address</th>
+                <th>Description</th>
+                <th>Confidential</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Website</th>
+                <th>Status</th>
+                <th>Photo</th>
+                <th>Coordinates</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {filteredLocations.map((location) => (
-                <TableRow key={location._id}>
-                  <TableCell>{location.name}</TableCell>
-                  <TableCell>{location.category}</TableCell>
-                  <TableCell>{location.suspended ? 'Suspended' : 'Active'}</TableCell>
-                  <TableCell>{location.restricted ? 'Yes' : 'No'}</TableCell>
-                  <TableCell>
-                    {`${location.location.coordinates[0]}, ${location.location.coordinates[1]}`}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setSelectedLocation(location);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() => handleDelete(location._id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                <tr key={location.properties.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={editingLocation?.properties.id === location.properties.id}
+                      onChange={(e) => handleEditToggle(e, location)}
+                    />
+                  </td>
+                  <td>{location.properties.id}</td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <input
+                        type="text"
+                        value={editingLocation.properties.loc_name || ''}
+                        onChange={(e) => handleFieldChange('loc_name', e.target.value)}
+                      />
+                    ) : (
+                      location.properties.loc_name || '-'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <select
+                        value={editingLocation.properties.category}
+                        onChange={(e) => handleFieldChange('category', e.target.value)}
+                      >
+                        <option value="Restaurants">Restaurants</option>
+                        <option value="Parks">Parks</option>
+                        <option value="Museums">Museums</option>
+                        <option value="Shops">Shops</option>
+                        <option value="Others">Others</option>
+                      </select>
+                    ) : (
+                      location.properties.category
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <input
+                        type="text"
+                        value={editingLocation.properties.address || ''}
+                        onChange={(e) => handleFieldChange('address', e.target.value)}
+                      />
+                    ) : (
+                      location.properties.address || '-'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <textarea
+                        value={editingLocation.properties.description || ''}
+                        onChange={(e) => handleFieldChange('description', e.target.value)}
+                      />
+                    ) : (
+                      location.properties.description || '-'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <input
+                        type="checkbox"
+                        checked={editingLocation.properties.confidential}
+                        onChange={(e) => handleFieldChange('confidential', e.target.checked)}
+                      />
+                    ) : (
+                      location.properties.confidential ? 'Yes' : 'No'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <input
+                        type="email"
+                        value={editingLocation.properties.email || ''}
+                        onChange={(e) => handleFieldChange('email', e.target.value)}
+                      />
+                    ) : (
+                      location.properties.email || '-'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <input
+                        type="text"
+                        value={editingLocation.properties.phone || ''}
+                        onChange={(e) => handleFieldChange('phone', e.target.value)}
+                      />
+                    ) : (
+                      location.properties.phone || '-'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <input
+                        type="text"
+                        value={editingLocation.properties.Site || ''}
+                        onChange={(e) => handleFieldChange('Site', e.target.value)}
+                      />
+                    ) : (
+                      location.properties.Site || '-'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <select
+                        value={editingLocation.properties.loc_status}
+                        onChange={(e) => handleFieldChange('loc_status', e.target.value)}
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Suspended">Suspended</option>
+                        <option value="Removed">Removed</option>
+                      </select>
+                    ) : (
+                      location.properties.loc_status
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <input
+                        type="text"
+                        value={editingLocation.properties.photo || ''}
+                        onChange={(e) => handleFieldChange('photo', e.target.value)}
+                      />
+                    ) : (
+                      location.properties.photo ? (
+                        <a href={location.properties.photo} target="_blank" rel="noopener noreferrer">
+                          View
+                        </a>
+                      ) : '-'
+                    )}
+                  </td>
+                  <td>
+                    {editingLocation?.properties.id === location.properties.id ? (
+                      <div>
+                        <input
+                          type="number"
+                          value={editingLocation.geometry.coordinates[0]}
+                          onChange={(e) => setEditingLocation(prev => ({
+                            ...prev,
+                            geometry: {
+                              ...prev.geometry,
+                              coordinates: [parseFloat(e.target.value), prev.geometry.coordinates[1]]
+                            }
+                          }))}
+                          placeholder="Longitude"
+                        />
+                        <input
+                          type="number"
+                          value={editingLocation.geometry.coordinates[1]}
+                          onChange={(e) => setEditingLocation(prev => ({
+                            ...prev,
+                            geometry: {
+                              ...prev.geometry,
+                              coordinates: [prev.geometry.coordinates[0], parseFloat(e.target.value)]
+                            }
+                          }))}
+                          placeholder="Latitude"
+                        />
+                      </div>
+                    ) : (
+                      `${location.geometry.coordinates[0].toFixed(6)}, ${location.geometry.coordinates[1].toFixed(6)}`
+                    )}
+                  </td>
+                  <td>
+                    <button onClick={() => handleCancelMembership(location.properties.id)}>
+                      Cancel Membership
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </tbody>
+          </table>
+        </div>
 
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)}>
-          <DialogTitle>Edit Location</DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Name"
-              value={selectedLocation?.name || ''}
-              onChange={(e) => setSelectedLocation({
-                ...selectedLocation,
-                name: e.target.value
-              })}
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={selectedLocation?.category || ''}
-                onChange={(e) => setSelectedLocation({
-                  ...selectedLocation,
-                  category: e.target.value
-                })}
-              >
-                <MenuItem value="SafeZone">Safe Zone</MenuItem>
-                <MenuItem value="Restroom">Restroom</MenuItem>
-                <MenuItem value="Restaurant">Restaurant</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={selectedLocation?.restricted || false}
-                  onChange={(e) => setSelectedLocation({
-                    ...selectedLocation,
-                    restricted: e.target.checked
-                  })}
-                />
-              }
-              label="Restricted Access"
-            />
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Latitude"
-              value={selectedLocation?.location.coordinates[0] || ''}
-              onChange={(e) => setSelectedLocation({
-                ...selectedLocation,
-                location: {
-                  ...selectedLocation.location,
-                  coordinates: [Number(e.target.value), selectedLocation.location.coordinates[1]]
-                }
-              })}
-            />
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Longitude"
-              value={selectedLocation?.location.coordinates[1] || ''}
-              onChange={(e) => setSelectedLocation({
-                ...selectedLocation,
-                location: {
-                  ...selectedLocation.location,
-                  coordinates: [selectedLocation.location.coordinates[0], Number(e.target.value)]
-                }
-              })}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => handleLocationUpdate(selectedLocation)}>Save</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Confirmation Dialog */}
-        <Dialog
-          open={confirmationDialog.open}
-          onClose={() => setConfirmationDialog({ open: false, message: '', onConfirm: null })}
-        >
-          <DialogTitle>Confirm Action</DialogTitle>
-          <DialogContent>
-            <Typography>{confirmationDialog.message}</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setConfirmationDialog({ open: false, message: '', onConfirm: null })}>
-              Cancel
-            </Button>
-            <Button onClick={confirmationDialog.onConfirm} color="primary">
-              Confirm
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Container>
+        {/* Suspend Dialog */}
+        {isSuspendDialogOpen && (
+          <div className={styles.dialogOverlay}>
+            <div className={styles.dialog}>
+              <h3>Suspend Location</h3>
+              <div className={styles.formGroup}>
+                <label>Suspension Period (days):</label>
+                <select
+                  value={suspensionPeriod}
+                  onChange={(e) => setSuspensionPeriod(Number(e.target.value))}
+                >
+                  <option value={30}>30 days</option>
+                  <option value={60}>60 days</option>
+                  <option value={90}>90 days</option>
+                </select>
+              </div>
+              <div className={styles.dialogActions}>
+                <button onClick={() => setIsSuspendDialogOpen(false)}>Cancel</button>
+                <button onClick={handleSuspend}>Confirm</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

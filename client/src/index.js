@@ -8,7 +8,7 @@ import Register from "./users/Register";
 import Login from "./users/Login";
 import AdminUsers from "./users/AdminUsers";
 import NeighborhoodsAdmin from "./locations/NeighborhoodsAdmin" 
-import LocationMembershipAdmin from "./locations/LocationMembershipAdmin"
+import LocationsAdmin from "./locations/LocationsAdmin"
 import Home from "./pages/Home";
 import NoPage from "./pages/NoPage";
 
@@ -24,7 +24,7 @@ export default function Main() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<AdminUsers />} /> 
         <Route path="/hoods" element={<NeighborhoodsAdmin />} />
-        <Route path="/membership-admin" element={<LocationMembershipAdmin />} />
+        <Route path="/locations" element={<LocationsAdmin />} />
         <Route path="*" element={<NoPage />} />
       </Routes>
     </BrowserRouter>

@@ -511,7 +511,7 @@ const getFilteredLocations = (locations) => {
           {showAdminMenu && (
             <div className={styles.adminMenuDropdown}>
               <Link to="/">Home</Link>
-              <Link to="/locations/membership-admin">Manage Location Memberships</Link>
+              <Link to="/locations">Manage Locations</Link>
               <Link to="/admin">Manage Users</Link>
               <Link to="/hoods">Manage Neighborhoods</Link>
             </div>

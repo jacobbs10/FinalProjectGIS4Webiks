@@ -3,7 +3,7 @@ import { React, useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayerGroup, useMapEvents, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
-import styles from '../css/MainStyles.module.css';
+import styles from '../css/AppStyles.module.css';
 import api from '../utils/axios'; 
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -631,7 +631,7 @@ const getFilteredLocations = (locations) => {
                       <div>
                         <p><strong>{feature.properties.loc_name}</strong></p>
                         {feature.properties.photo && (
-                          <img
+                          <img className={styles.popupImage}
                             src={feature.properties.photo}
                             alt={feature.properties.loc_name}
                             style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}
@@ -687,7 +687,7 @@ const getFilteredLocations = (locations) => {
               <div>
                 <p><strong>{feature.properties.loc_name}</strong></p>
                 {feature.properties.photo && (
-                  <img
+                  <img className={styles.popupImage}
                     src={feature.properties.photo}
                     alt={feature.properties.loc_name}
                     style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FixedHeader from "../components/FixedHeader";
-import styles from "../css/MainStyles.module.css";
+import styles from "../css/HoodStyles.module.css";
 import { processBulkHoods } from '../utils/BulkHoodsInsert';
 
 const NeighborhoodsAdmin = () => {

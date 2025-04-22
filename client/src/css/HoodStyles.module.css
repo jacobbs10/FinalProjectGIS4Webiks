@@ -1,0 +1,176 @@
+/* GLOBAL RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+  }
+
+  /* 👇 Wrapper to center table and avoid overflow */
+  .tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /*----------------------
+    Admin page design
+  -----------------------*/
+  .adminPanel {
+    margin-top: 80px;
+    padding: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /*----------------------
+      User table
+  -----------------------*/
+
+  .userTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 14px;
+    table-layout: auto;
+    color: black;
+  }
+  
+  .userTable th,
+  .userTable td {
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+    word-wrap: break-word;
+    white-space: normal;
+    vertical-align: middle;
+    /* outline: 2px solid lime; */
+  }
+  
+  /* ✅ Fix for open bottom-right table cell */
+  .userTable tr td:last-child {
+    border-right: 1px solid #e0e0e0;
+  }
+  
+  .userTable tr:last-child td {
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .userTable tr:last-child td:last-child {
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .userTable th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+  
+  .userTable tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .userTable button {
+    padding: 6px 10px;
+    margin: 4px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+  }
+
+  /*----------------------
+    Toolbar design
+  -----------------------*/  
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .toolbar input,
+  .toolbar select,
+  .toolbar button {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  .toolbar button {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .toolbar button:hover {
+    background-color: #115293;
+  }
+
+  /*-------------------------
+    File upload design
+  -------------------------*/
+  .fileUploadButton {
+    color: black;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .fileUploadButton:hover {
+    text-decoration: underline;
+  }
+  
+  .fileUploadButton::after {
+    content: " 📁";
+    font-size: 0.9em;
+  }
+
+  /*---------------------
+       PopUps
+---------------------*/ 
+.popupOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .popup {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .coordBox {
+    margin: 6px 0;
+    padding: 8px;
+    background-color: #f3f3f3;
+    border-radius: 6px;
+  }
+  
+  .coordRow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }      
+  
+  

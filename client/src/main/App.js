@@ -655,10 +655,13 @@ const getFilteredLocations = (locations) => {
                       <div>
                         <p><strong>{feature.properties.loc_name}</strong></p>
                         {feature.properties.photo && (
-                          <img className={styles.popupImage}
-                            src={feature.properties.photo}
+                          <img className={styles.popupImg}
+                            src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
                             alt={feature.properties.loc_name}
-                            style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}
+                            onError={(e) => {
+                              console.error("Image failed to load:", e);
+                              e.target.onerror = null;
+                            }}
                           />
                         )}
                         <p><strong>Description:</strong> {feature.properties.description}</p>
@@ -711,10 +714,13 @@ const getFilteredLocations = (locations) => {
               <div>
                 <p><strong>{feature.properties.loc_name}</strong></p>
                 {feature.properties.photo && (
-                  <img className={styles.popupImage}
-                    src={feature.properties.photo}
+                  <img className={styles.popupImg}
+                    src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
                     alt={feature.properties.loc_name}
-                    style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}
+                    onError={(e) => {
+                      console.error("Image failed to load:", e);
+                      e.target.onerror = null;
+                    }}
                   />
                 )}
                 <p><strong>Description:</strong> {feature.properties.description}</p>

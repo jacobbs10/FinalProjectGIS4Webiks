@@ -21,6 +21,9 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Determine role
+    const role = (!req.body.role || req.body.role === 'Admin') ? 'Viewer' : req.body.role;
+
     // Create new user
     const user = new User({
       username,
@@ -29,7 +32,7 @@ router.post('/register', async (req, res) => {
       user_cellphone,
       user_email,
       password,
-      role: req.body.role || 'Viewer',
+      role,
       user_status: req.body.user_status !== undefined ? req.body.user_status : true
     });
 

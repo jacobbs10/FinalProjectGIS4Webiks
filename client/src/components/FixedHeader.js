@@ -6,6 +6,7 @@ const FixedHeader = ({ title = "GIS4Webiks" }) => {
     console.log("Logging out...");
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
+    sessionStorage.removeItem("loginStatus");
     window.location.href = "/login"; // Redirect to login page
   };
 

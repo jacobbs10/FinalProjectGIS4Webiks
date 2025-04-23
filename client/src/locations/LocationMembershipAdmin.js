@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import FixedHeader from '../components/FixedHeader';
-import styles from '../css/HoodStyles.module.css';
+import styles from '../css/MainStyles.module.css';
 
-const LocationsAdmin = () => {
+const LocationMembershipAdmin = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [pageLimit, setPageLimit] = useState(10);
@@ -273,9 +273,9 @@ const LocationsAdmin = () => {
 
   return (
     <div>
-      <FixedHeader title="Locations Management" />
+      <FixedHeader title="Location Membership Management" />
       <div className={styles.adminPanel}>
-        <h2>Manage Locations</h2>
+        <h2>Manage Location Memberships</h2>
 
         <div className={styles.toolbar}>
           <button onClick={handleNewLocation} className={styles.addButton}>
@@ -531,4 +531,4 @@ const LocationsAdmin = () => {
   );
 };
 
-export default LocationsAdmin; 
+export default LocationMembershipAdmin; 

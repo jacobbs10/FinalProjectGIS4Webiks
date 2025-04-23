@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { authMiddleware, isAdmin } = require('../middleware/authMiddleware');
+const bcrypt = require('bcryptjs');
 
 // Get all users (Admin only)
 router.get('/', authMiddleware, isAdmin, async (req, res) => {
@@ -43,9 +44,15 @@ router.put('/:id', authMiddleware, async (req, res) => {
       delete updates.role;
     }
 
+    // If password is being updated, hash it before saving
+    if (updates.password) {
+      const salt = await bcrypt.genSalt(10);
+      updates.password = await bcrypt.hash(updates.password, salt);
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      updates,
+      updates, // Now 'updates.password' will be hashed if it was provided
       { new: true, runValidators: true }
     ).select('-password');
 

@@ -130,27 +130,87 @@
   /*----------------------
   Popup design
 -----------------------*/
-
 .popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-  }
-  
-  .popup-box {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    transform: translate(-50%, 0);
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it appears above other elements */
+}
+
+/* Popup box */
+.popup-box {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a shadow for depth */
+  max-width: 400px;
+  width: 90%; /* Responsive width */
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+/* Button styles inside the popup */
+.popup-box button {
+  background-color: #9fa0a1; /* Blue button */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.popup-box button:hover {
+  background-color: #6b6c6e; /* Darker blue on hover */
+}
+
+/* Dropdown and label styles */
+.popup-box select {
+  padding: 5px;
+  margin-left: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.popup-box label {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.popup-box h3 {
+  font-size: 18px; /* Adjust the font size */
+  font-weight: bold; /* Make the heading bold */
+  color: #333; /* Dark gray for readability */
+  margin-bottom: 10px; /* Add spacing below the heading */
+  text-align: center; /* Center-align the heading */
+  font-family: Arial, sans-serif; /* Use a clean, modern font */
+}
+
+.popup-box p {
+  font-size: 14px; /* Slightly smaller font size for paragraphs */
+  color: #555; /* Medium gray for readability */
+  margin: 5px 0; /* Add spacing between paragraphs */
+  line-height: 1.5; /* Improve readability with proper line height */
+  text-align: center; /* Center-align the text */
+  font-family: Arial, sans-serif; /* Use a clean, modern font */
+}
+
+.popup-box label {
+  font-size: 14px; /* Slightly smaller font size for paragraphs */
+  color: #555; /* Medium gray for readability */
+  margin: 5px 0; /* Add spacing between paragraphs */
+  line-height: 1.5; /* Improve readability with proper line height */
+  text-align: center; /* Center-align the text */
+  font-family: Arial, sans-serif; /* Use a clean, modern font */
+}
+
   /* ----------------
   Admin menu design
 -------------------*/

@@ -516,7 +516,7 @@ const getFilteredLocations = (locations) => {
                 if (e.target.checked) fetchNeighborhoods(); // Fetch neighborhoods when checked
               }}
             />
-            Show Hoods <a>  </a>
+            Show Qtrs <a>  </a>
           </label>
           {!loggedIn && ( // Show these links only when not logged in
             <>

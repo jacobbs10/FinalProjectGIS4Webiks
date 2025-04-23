@@ -1,3 +1,19 @@
+
+/* Default styles for desktop */
+.App-navigation label {
+  display: inline-block; /* Keep it inline for desktop */
+  margin-right: 10px; /* Add spacing */
+}
+
+/* Styles for mobile (screen width less than 768px) */
+@media (max-width: 768px) {
+  .App-navigation label {
+    display: block; /* Move it to a new line */
+    margin-top: 10px; /* Add spacing above */
+    margin-right: 0; /* Remove right margin */
+    text-align: center; /* Center-align the label */
+  }
+}
 /* ------------------------------
    Additional Shared Styles
 ------------------------------ */

@@ -430,6 +430,7 @@ const handleLogout = () => {
   // Clear session storage
   sessionStorage.removeItem("token"); 
   sessionStorage.removeItem("user");
+  sessionStorage.removeItem("loginStatus");
 
   // Reset state
   setLoggedIn(false);  
@@ -515,19 +516,27 @@ const getFilteredLocations = (locations) => {
                 if (e.target.checked) fetchNeighborhoods(); // Fetch neighborhoods when checked
               }}
             />
-            Show Hoods
+            Show Hoods <a>  </a>
           </label>
-          <a className="App-link" href="/register">Register</a>
-          <a>/</a>
-          <a className="App-link" href="/login">Login</a>
-          <a>/</a>
-          <button 
-            className="App-link" 
-            onClick={handleLogout}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
-          >
-            Logout
-          </button>
+          {!loggedIn && ( // Show these links only when not logged in
+            <>
+              <a className="App-link" href="/register">Register</a>
+              <a>/</a>
+              <a className="App-link" href="/login">Login</a>
+              <a>/</a>
+            </>
+          )}
+          {loggedIn && ( // Show these links only when logged in
+            <>
+            <button 
+              className="App-link" 
+              onClick={handleLogout}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
+            >
+              Logout
+            </button>
+          </>
+          )}
           {user?.role === "Admin" && (
             <div className={styles.adminMenuContainer}>
             <button 

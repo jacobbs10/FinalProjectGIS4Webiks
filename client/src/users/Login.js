@@ -34,6 +34,7 @@ const Login = () => {
       console.log(`res.data.token: ${res.data.token} res.token ${res.token}`);
       sessionStorage.setItem("user", JSON.stringify(loggedInUser));
       sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("loginStatus", true);
       alert("✅ Log-In Successful !");
 
       const t = sessionStorage.getItem("token");

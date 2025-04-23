@@ -9,7 +9,7 @@
 @media (max-width: 768px) {
   .App-navigation label {
     display: block; /* Move it to a new line */
-    margin-top: 10px; /* Add spacing above */
+    margin-top: 100px; /* Add spacing above */
     margin-right: 0; /* Remove right margin */
     text-align: center; /* Center-align the label */
   }

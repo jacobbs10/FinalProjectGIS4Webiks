@@ -1,5 +1,5 @@
 import '../css/App.css';
-import { React, useState, useEffect } from "react";
+import { React, useState, useEffect, useRef  } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayerGroup, useMapEvents, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
@@ -7,6 +7,7 @@ import styles from '../css/AppStyles.module.css';
 import api from '../utils/axios'; 
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import e from 'cors';
 
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
@@ -92,6 +93,7 @@ function App() {
     // fallback/default
     default: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
   };
+  const mapRef = useRef(null);
 
   
   // You can call this on component mount if you want location immediately
@@ -303,6 +305,7 @@ function App() {
 
   const handleUserChoice = async (latlng, option, range) => {
     try {
+      setDisplayedLocations([]); // Clear existing locations
       //console.log("User clicked:", latlng, "Option:", option, "Range:", range);
       const token = sessionStorage.getItem("token");
       if (option === "neighborhood") {
@@ -334,6 +337,7 @@ function App() {
           grouped[category].push(feature);
         });
         setDisplayedLocations(grouped);
+        setVisibleCategories(Object.keys(grouped));
         setDisplayMode('query');
       } else if (option === "range") {
         const locations = await axios.post(`${BASE_URL}/api/locs/range`, {coordinates: [latlng.lng, latlng.lat], range: range}, {
@@ -352,6 +356,7 @@ function App() {
           grouped[category].push(feature);
         });
         setDisplayedLocations(grouped);
+        setVisibleCategories(Object.keys(grouped));
         setDisplayMode('query');
       }
     } catch (error) {
@@ -451,7 +456,8 @@ const handleShowAllLocations = async () => {
           grouped[category].push(feature);
         });
         setDisplayedLocations(grouped);
-    setDisplayMode('all');
+        setVisibleCategories(Object.keys(grouped));
+        setDisplayMode('all');
     // Clear category selection when displaying all locations
     //setVisibleCategories([]);
   } catch (err) {
@@ -471,6 +477,20 @@ const getFilteredLocations = (locations) => {
   
   return filtered;
 };
+
+  const fetchAddress = async (lat, lon) => {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+    );
+    const data = await response.json();
+    if (!data || !data.display_name) {
+      console.error("Failed to fetch address:", data);
+      return null;
+    } else {
+      console.log("Fetched address:", data.display_name);
+    }
+    return data.display_name;
+  };
 
   return (
     <div className={styles.container}>
@@ -578,12 +598,18 @@ const getFilteredLocations = (locations) => {
         </div>
         <button
           className={styles.recenterButton}
-          onClick={() => {
-            const map = window._leafletMap;
+          onClick={async() => {
+            const address = await fetchAddress(location.latitude, location.longitude);
+            if (address) { alert(`Current location: ${address}`); 
+            } else {
+              alert("Address not found.");
+            }
+            // Recenter the map to the user's current location  
+            const map = mapRef.current;
             if (map && location.latitude && location.longitude) {
               map.setView([location.latitude, location.longitude], 13); // Center the map on the user's current location
             } else {
-              alert("Current location is not available.");
+              alert("Address Can not be set on map.");
             }
           }}
         >          
@@ -591,9 +617,7 @@ const getFilteredLocations = (locations) => {
         <MapContainer 
           center={[location.latitude, location.longitude]}
           zoom={13}
-          whenCreated={(mapInstance) => {
-            window._leafletMap = mapInstance; // 👈 expose map for recentering
-          }}
+          ref={mapRef} // 👈 expose map for recentering          
         >
           <TileLayer
             attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>  | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
@@ -631,10 +655,13 @@ const getFilteredLocations = (locations) => {
                       <div>
                         <p><strong>{feature.properties.loc_name}</strong></p>
                         {feature.properties.photo && (
-                          <img className={styles.popupImage}
-                            src={feature.properties.photo}
+                          <img className={styles.popupImg}
+                            src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
                             alt={feature.properties.loc_name}
-                            style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}
+                            onError={(e) => {
+                              console.error("Image failed to load:", e);
+                              e.target.onerror = null;
+                            }}
                           />
                         )}
                         <p><strong>Description:</strong> {feature.properties.description}</p>
@@ -687,10 +714,13 @@ const getFilteredLocations = (locations) => {
               <div>
                 <p><strong>{feature.properties.loc_name}</strong></p>
                 {feature.properties.photo && (
-                  <img className={styles.popupImage}
-                    src={feature.properties.photo}
+                  <img className={styles.popupImg}
+                    src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
                     alt={feature.properties.loc_name}
-                    style={{ width: "100%", height: "auto", marginBottom: "10px", borderRadius: "8px" }}
+                    onError={(e) => {
+                      console.error("Image failed to load:", e);
+                      e.target.onerror = null;
+                    }}
                   />
                 )}
                 <p><strong>Description:</strong> {feature.properties.description}</p>

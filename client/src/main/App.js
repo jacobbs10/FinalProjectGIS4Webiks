@@ -7,6 +7,14 @@ import styles from '../css/AppStyles.module.css';
 import api from '../utils/axios'; 
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import locationIcon from "../icons/Location-icon.svg";
+import restaurantIcon from "../icons/restaurant.svg";
+import restroomIcon from "../icons/restroom.svg";
+import shelterIcon from "../icons/shelter.svg";
+import museumIcon from "../icons/museum.svg";
+import parkIcon from "../icons/park.svg";
+import shopIcon from "../icons/shop.svg";
+import otherIcon from "../icons/other.svg";
 import e from 'cors';
 
 const LoginExpiredPrompt = ({ onClose }) => {
@@ -83,13 +91,13 @@ function App() {
   const [displayMode, setDisplayMode] = useState('categories'); // 'categories', 'all', 'query'
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
   const categoryIcons = {
-    Restrooms: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Restaurants: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Shops: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Shelters: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Parks: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Museums: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
-    Others: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
+    Restrooms: new Icon({ iconUrl: restroomIcon, iconSize: [25, 25] }),
+    Restaurants: new Icon({ iconUrl: restaurantIcon, iconSize: [25, 25] }),
+    Shops: new Icon({ iconUrl: shopIcon, iconSize: [25, 25] }),
+    Shelters: new Icon({ iconUrl: shelterIcon, iconSize: [25, 25] }),
+    Parks: new Icon({ iconUrl: parkIcon, iconSize: [25, 25] }),
+    Museums: new Icon({ iconUrl: museumIcon, iconSize: [25, 25] }),
+    Others: new Icon({ iconUrl: otherIcon, iconSize: [25, 25] }),
     // fallback/default
     default: new Icon({ iconUrl: require("../icons/destination.png"), iconSize: [36, 36] }),
   };
@@ -424,7 +432,7 @@ const handleLogout = () => {
   sessionStorage.removeItem("user");
 
   // Reset state
-  setLoggedIn({ status: false });  
+  setLoggedIn(false);  
   setIsTokenValid(false);
 
   window.location.reload();

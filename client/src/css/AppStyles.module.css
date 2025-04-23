@@ -300,15 +300,15 @@
   }
   
   .legend {
-    display: flex; /* Align items horizontally */
-    flex-wrap: wrap; /* Allow wrapping to the next line if needed */
-    gap: 3px;
+    display: grid; /* Use grid layout */
+    grid-template-columns: repeat(2, 1fr); /* Create two equal columns */
+    gap: 10px; /* Add spacing between items */
     background: white;
-    padding: 3px;
+    padding: 10px;
     border-radius: 4px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
     position: absolute;
-    top: 130px;
+    top: 10px;
     left: 20px;
     z-index: 1000;
   }
@@ -350,3 +350,54 @@
     gap: 10px;
     margin-bottom: 10px;
   }
+
+  /* Address input field */
+  .addressInput {
+    width: 50%; /* Set a reasonable width for the input box */
+    max-width: 400px; /* Limit the maximum width */
+    margin: 10px auto; /* Center the input box horizontally */
+    display: block; /* Ensure it behaves like a block element */
+    padding: 10px; /* Add padding for better usability */
+    font-size: 14px; /* Set a readable font size */
+    border: 1px solid #ccc; /* Add a border */
+    border-radius: 5px; /* Add rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+}
+
+/* Suggestions dropdown */
+.suggestionsDropdown {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  max-height: 200px;
+  overflow-y: auto;
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+  color: black; /* Ensure the text color is visible */
+}
+
+.suggestion {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestion:hover {
+  background-color: #f0f0f0;
+}
+
+.mapClickButton {
+  position: flex;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.mapClickButton:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+} 

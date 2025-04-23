@@ -1,6 +1,6 @@
 import '../css/App.css';
 import { React, useState, useEffect, useRef  } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, LayerGroup, useMapEvents, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, LayerGroup, useMapEvents, GeoJSON, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import styles from '../css/AppStyles.module.css';
@@ -35,30 +35,33 @@ const LoginExpiredPrompt = ({ onClose }) => {
 };
 
 // Popup overlay
-const MapClickPopup = ({ latlng, onSelectOption, onClose }) => {
+const MapClickPopup = ({ showPopup, latlng, onSelectOption, onClose }) => {
   const [range, setRange] = useState(100);
-
-  return (
-    <div className={styles['popup-overlay']}>
-      <div className={styles['popup-box']}>
-        <h3>Choose an Option</h3>
-        <p>Clicked: {latlng.lng.toFixed(5)}, {latlng.lat.toFixed(5)}</p>
-        <button onClick={() => onSelectOption("neighborhood")}>Show locations in neighborhood</button>
-        <div style={{ marginTop: "10px" }}>
-          <label>Range (meters): </label>
-          <select value={range} onChange={(e) => setRange(parseInt(e.target.value))}>
-            <option value={100}>100m</option>
-            <option value={200}>200m</option>
-            <option value={500}>500m</option>
-          </select>
-          <button onClick={() => onSelectOption("range", range)} style={{ marginLeft: "10px" }}>
-            Show within range
-          </button>
+  console.log("MapClickPopup", latlng, showPopup);
+  if (showPopup) {
+    return (
+      <div className={styles['popup-overlay']}>
+        <div className={styles['popup-box']}>
+          <h3>Choose an Option</h3>
+          <p>Clicked: {latlng.lng.toFixed(5)}, {latlng.lat.toFixed(5)}</p>
+          <button onClick={() => onSelectOption("neighborhood")}>Show locations in neighborhood</button>
+          <div style={{ marginTop: "10px" }}>
+            <label>Range (meters): </label>
+            <select value={range} onChange={(e) => setRange(parseInt(e.target.value))}>
+              <option value={250}>250m</option>
+              <option value={500}>500m</option>
+              <option value={750}>750m</option>
+            </select>
+            <button onClick={() => onSelectOption("range", range)} style={{ marginLeft: "10px" }}>
+              Show within range
+            </button>
+          </div>
+          <button onClick={onClose} style={{ marginTop: "10px" }}>Cancel</button>
         </div>
-        <button onClick={onClose} style={{ marginTop: "10px" }}>Cancel</button>
       </div>
-    </div>
-  );
+    );
+  }
+  return null;
 };
 
 function App() {
@@ -89,6 +92,12 @@ function App() {
   const [displayedLocations, setDisplayedLocations] = useState([]);
   // Added this state to track what display mode we're in
   const [displayMode, setDisplayMode] = useState('categories'); // 'categories', 'all', 'query'
+  const [address, setAddress] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [coordinates, setCoordinates] = useState(null);
+  const [showMapClickPopup, setShowMapClickPopup] = useState(false);
+  const [geometry, setGeometry] = useState(null); // For neighborhood boundaries or range
+const [rangeCircle, setRangeCircle] = useState(null); // For the range circle
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
   const categoryIcons = {
     Restrooms: new Icon({ iconUrl: restroomIcon, iconSize: [25, 25] }),
@@ -294,6 +303,7 @@ function App() {
   };
 
   const handleMapClick = (latlng) => {
+    setCoordinates(latlng)
     setClickedLocation(latlng); // store it in state
     setShowOptions(true);       // show a modal/popup with "in range" or "neighborhood"
     setDisplayedLocations([]); // Clear existing locations
@@ -313,11 +323,12 @@ function App() {
 
   const handleUserChoice = async (latlng, option, range) => {
     try {
+      setGeometry(null);
+      setRangeCircle(null);
       setDisplayedLocations([]); // Clear existing locations
       //console.log("User clicked:", latlng, "Option:", option, "Range:", range);
       const token = sessionStorage.getItem("token");
       if (option === "neighborhood") {
-        //console.log("Fetching neighborhood data...");
         const polygon = await  axios.get(`${BASE_URL}/api/hood/position`, {
           params: {
             lng: latlng.lng,
@@ -328,7 +339,8 @@ function App() {
             "Content-Type": "application/json"
           }
         });
-        //console.log("Neighborhood polygon:", polygon.data.geometry.coordinates);               
+        setGeometry(polygon.data.geometry);
+
         const locations = await  axios.post(`${BASE_URL}/api/locs/area`, { coordinates: polygon.data.geometry.coordinates }, {
           headers: {
             Authorization: `${token}`,
@@ -348,6 +360,10 @@ function App() {
         setVisibleCategories(Object.keys(grouped));
         setDisplayMode('query');
       } else if (option === "range") {
+        setRangeCircle({
+          center: [latlng.lat, latlng.lng],
+          radius: range,
+        });
         const locations = await axios.post(`${BASE_URL}/api/locs/range`, {coordinates: [latlng.lng, latlng.lat], range: range}, {
           headers: {
             Authorization: `${token}`,
@@ -370,6 +386,60 @@ function App() {
     } catch (error) {
       console.error("Error fetching locations:", error);
     }
+  };
+
+  // Fetch suggestions from Nominatim
+  const fetchSuggestions = async (query) => {
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          query
+        )}&format=json&addressdetails=1&limit=5`
+      );
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+    }
+  };
+
+  // Handle address input change
+  const handleCompleteAddress = async (address) => {
+    //const address = e.target.value;
+    if (address) {
+      try {
+        const coords = await geocodeAddress(address);
+        setClickedLocation(coords);
+        setShowOptions(true); // trigger popup for range or neighborhood
+        setShowMapClickPopup(true); // Show the map click popup
+      } catch (err) {
+        alert("Failed to find address.");
+      }
+    }
+    setAddress(address);
+    fetchSuggestions(address);
+  };
+
+   // Handle address input change
+   const handleInputChange = (e) => {
+    const value = e.target.value;
+    setAddress(value);
+    fetchSuggestions(value);
+  };
+
+  // Handle address selection
+  const handleSelect = (suggestion) => {
+    setAddress(suggestion.display_name);
+    setCoordinates({
+      lat: parseFloat(suggestion.lat),
+      lng: parseFloat(suggestion.lon),
+    });
+    setSuggestions([]); // Clear suggestions after selection
   };
 
 const handleTokenExpiration = () => {
@@ -558,6 +628,42 @@ const getFilteredLocations = (locations) => {
           <span style={{ color: '#61dafb', marginLeft: '5px' }}>&copy;</span>
 
         </nav>
+        {loggedIn && (
+          <>
+          {/* Address Input */}
+          <input
+            type="text"
+            value={address}
+            onChange={handleInputChange} // Update the state on change
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleCompleteAddress(address); // Handle the complete address on Enter
+              }
+            }}
+            placeholder="Enter an address"
+            className={styles.addressInput}
+          />
+          {/* Suggestions Dropdown */}
+          {suggestions.length > 0 && (
+            <div className={styles.suggestionsDropdown}>
+              {suggestions.map((suggestion) => (
+                <div
+                  key={suggestion.place_id}
+                  className={styles.suggestion}
+                  onClick={() => handleSelect(suggestion)}
+                >
+                  {suggestion.display_name}
+                </div>
+              ))}
+            </div>
+          )}
+          <button 
+            className={styles.mapClickButton}
+            onClick={() => setShowMapClickPopup(true)} >  
+          Click Here & On Map
+          </button>
+          </>
+        )}
         </div>
         <div className={styles.middle}>
         {/*<div className={styles.layerPanelWrapper}>
@@ -594,24 +700,7 @@ const getFilteredLocations = (locations) => {
         </button>
         <button onClick={handleShowAllLocations} className={styles.layerToggleButton}>
             Show All Locations
-          </button>
-          <button onClick={async () => {
-            const address = prompt("Enter an address:");
-            if (address) {
-              try {
-                const coords = await geocodeAddress(address);
-                setClickedLocation(coords);
-                setShowOptions(true); // trigger popup for range or neighborhood
-              } catch (err) {
-                alert("Failed to find address.");
-              }
-            }
-          }} className={styles.layerToggleButton}>
-            Select by Address
-          </button>
-          <button onClick={() => alert("Click anywhere on the map to choose a point.")} className={styles.layerToggleButton}>
-            Select by Map Click
-          </button>
+          </button>          
         </div>
         <button
           className={styles.recenterButton}
@@ -639,7 +728,33 @@ const getFilteredLocations = (locations) => {
           <TileLayer
             attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>  | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />     
+          />  
+
+          {/* Render neighborhood boundaries */}
+          {geometry && (
+            <GeoJSON
+              data={geometry}
+              style={{
+                color: "blue", // Border color
+                weight: 2, // Border thickness
+                fillColor: "blue", // Fill color
+                fillOpacity: 0.2, // Translucent fill
+              }}
+            />
+          )}
+
+          {/* Render range circle */}
+          {rangeCircle && (
+            <Circle
+              center={rangeCircle.center}
+              radius={rangeCircle.radius}
+              pathOptions={{
+                color: "red", // Circle border color
+                fillColor: "red", // Circle fill color
+                fillOpacity: 0.2, // Translucent fill
+              }}
+    />
+  )}   
             {/*<RecenterMap lat={location.latitude} lng={location.longitude} />*/}
             <MapClickHandler onMapClick={handleMapClick} /> 
 
@@ -775,12 +890,17 @@ const getFilteredLocations = (locations) => {
       </MapContainer>
       {showOptions && clickedLocation && (
         <MapClickPopup 
+          showPopup={showMapClickPopup}
           latlng={clickedLocation}
           onSelectOption={(option, range) => {
             handleUserChoice(clickedLocation, option, range);
             setShowOptions(false);
+            setShowMapClickPopup(false);
           }}
-          onClose={() => setShowOptions(false)}
+          onClose={() => {
+            setShowOptions(false);
+            setShowMapClickPopup(false);
+          }}
         />
       )}
         </div>

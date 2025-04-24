@@ -1,0 +1,175 @@
+/*------------------
+   Login Prompt
+-------------------*/
+.login-prompt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .login-prompt-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+  }
+  
+  .login-prompt-content h2 {
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .login-prompt-content p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .login-prompt-content button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .login-prompt-content button:hover {
+    background-color: #0056b3;
+  }
+
+/*------------------
+   Submit Button
+-------------------*/
+  .submitButton {
+    margin-top: 5px;
+    padding: 10px;
+    background-color: blue;
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 20%;
+  }
+  
+  .submitButton:hover {
+    background-color: darkblue;
+  }
+
+/*------------------------------------
+   Override Bootstrap Navbar Styles
+------------------------------------*/
+.navbar {
+    background-color: #6c757d !important; /* Custom grey color */
+    padding: 0 !important; /* Remove extra padding */
+    border: none; /* Remove any borders */
+    box-shadow: none; /* Remove shadow */
+  }
+  
+  .navbar .navbar-brand,
+  .navbar .nav-link,
+  .navbar .btn {
+    color: white !important; /* Ensure all text is white */
+    background-color: transparent !important; /* Remove background color */
+    padding: 10px 15px; /* Add consistent padding */
+    margin: 0; /* Remove margins */
+    text-decoration: none !important; /* Remove underline */
+  }
+  
+  .navbar .nav-link:hover,
+  .navbar .btn:hover {
+    color: #dcdcdc !important; /* Light grey on hover */
+    background-color: transparent !important; /* No background on hover */
+  }
+
+  /* ------------------------------
+   Additional Shared Styles
+------------------------------ */
+.container {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  .content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .header {
+    background: #555;
+    color: white;
+    padding: 30px;
+    text-align: center;
+  }
+  
+  .middle {
+    flex: 1;
+    padding: 20px;
+    background: #f4f4f4;
+    overflow: auto;
+  }
+
+/*-------------------
+   REcenter button
+-------------------*/
+.recenterButton {
+    position: absolute;
+    bottom: 20px; /* Adjust position as needed */
+    right: 20px; /* Adjust position as needed */
+    width: 50px;
+    height: 50px;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    border: none;
+    border-radius: 50%; /* Make it circular */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000; /* Ensure it appears above the map */
+  }
+  
+  .recenterButton:hover {
+    background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
+  }
+  
+  .sniperScope {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border: 2px solid white; /* Outer circle */
+    border-radius: 50%; /* Make it circular */
+  }
+  
+  .sniperScope::before,
+  .sniperScope::after {
+    content: "";
+    position: absolute;
+    background-color: white;
+  }
+  
+  .sniperScope::before {
+    width: 2px;
+    height: 100%;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%); /* Vertical line */
+  }
+  
+  .sniperScope::after {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%); /* Horizontal line */
+  }

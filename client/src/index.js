@@ -4,6 +4,7 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css';
 import App from './main/App';
+import AppLoc from './main/AppLoc';
 import Register from "./users/Register";
 import Login from "./users/Login";
 import AdminUsers from "./users/AdminUsers";
@@ -19,7 +20,8 @@ export default function Main() {
       <Routes>
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />                    
-        </Route>                
+        </Route>   
+        <Route path="/old" element={<AppLoc />} />             
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<AdminUsers />} /> 

@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const userActivitiesRoutes = require('./routes/userActivities');
 const neighborhoodRoutes = require('./routes/neighborhoodRoutes');
 const locationRoutes = require('./routes/locationRoutes');
+const emergencyLocRoutes = require('./routes/emergencyLocRoutes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userActivitiesRoutes);
 app.use('/api/hood', neighborhoodRoutes);
 app.use('/api/locs', locationRoutes);
+app.use('/api/emrgLocs', emergencyLocRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

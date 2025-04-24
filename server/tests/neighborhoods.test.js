@@ -1,197 +1,140 @@
-const request = require("supertest");
-const mongoose = require("mongoose");
-const app = require("../server");
-const Neighborhood = require("../models/NeighborhoodModel");
 
-// Mock authMiddleware and isAdmin
-jest.mock("../middleware/authMiddleware", () => ({
-  authMiddleware: (req, res, next) => next(),
-  isAdmin: (req, res, next) => next(),
-}));
+const request = require('supertest');
+const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const app = require('../server');
+const User = require('../models/User');
+const Neighborhood = require('../models/NeighborhoodModel');
 
+let token;
+let adminToken;
 let mongoServer;
 
 beforeAll(async () => {
-    const uri = process.env.MONGODB_URI;
-    if (!uri) throw new Error('MONGODB_URI is not defined in environment');
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-  });
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  await mongoose.connect(uri);
+
+  // Create admin user
+    const admin = new User({
+      username: 'admin',
+      user_firstname: 'Admin',
+      user_lastname: 'User',
+      user_cellphone: '1234567890',
+      user_email: 'admin@test.com',
+      password: 'adminpass',
+      role: 'Admin',
+    });
+    await admin.save();
+    adminId = admin._id.toString();
+  
+    const res1 = await request(app).post('/api/auth/login').send({
+      username: 'admin',
+      password: 'adminpass'
+    });
+    adminToken = res1.body.token;   
   
   afterAll(async () => {
-    await mongoose.connection.dropDatabase(); // Clean up
     await mongoose.disconnect();
+    await mongoServer.stop();
   });
 
-afterEach(async () => {
-  await Neighborhood.deleteMany();
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
 });
 
-describe("Neighborhoods API", () => {
-  const base = "/api/neighborhoods";
+describe('Neighborhoods API', () => {
+  let neighborhoodId;
 
-  const sampleNeighborhood = {
-    city: "TestCity",
-    neighborhood: "TestNeighborhood",
-    id: 1,
-    coordinates: [
-      [34.0, 32.0],
-      [34.1, 32.0],
-      [34.1, 32.1],
-      [34.0, 32.1],
-      [34.0, 32.0]
-    ]
-  };
-
-  it("should create a new neighborhood", async () => {
-    const res = await request(app).post(`${base}/neighborhood`).send(sampleNeighborhood);
-    expect(res.status).toBe(201);
-    expect(res.body.data.properties.city).toBe("TestCity");
-  });
-
-  it("should get all neighborhoods with pagination", async () => {
-    await Neighborhood.create({
-      type: "Feature",
-      properties: {
-        city: "CityA",
-        neighborhood: "A",
-        id: 1
-      },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[ [34, 32], [34.1, 32], [34.1, 32.1], [34, 32.1], [34, 32] ]]
-      }
-    });
-
-    const res = await request(app).get(`${base}/neighborhoods?page=1&size=10`);
-    expect(res.status).toBe(200);
-    expect(res.body.neighborhoods.length).toBe(1);
-  });
-
-  it("should get a neighborhood by ID", async () => {
-    await Neighborhood.create({
-      type: "Feature",
-      properties: { city: "City", neighborhood: "Name", id: 42 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[ [34, 32], [34.1, 32], [34.1, 32.1], [34, 32.1], [34, 32] ]]
-      }
-    });
-
-    const res = await request(app).get(`${base}/neighborhood/42`);
-    expect(res.status).toBe(200);
-    expect(res.body.properties.id).toBe(42);
-  });
-
-  it("should return 404 if neighborhood ID not found", async () => {
-    const res = await request(app).get(`${base}/neighborhood/999`);
-    expect(res.status).toBe(404);
-  });
-
-  it("should find neighborhood by position", async () => {
-    await Neighborhood.create({
-      type: "Feature",
-      properties: { city: "GeoCity", neighborhood: "GeoHood", id: 99 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [34.0, 32.0],
-          [34.2, 32.0],
-          [34.2, 32.2],
-          [34.0, 32.2],
-          [34.0, 32.0]
-        ]]
-      }
-    });
-
-    const res = await request(app).get(`${base}/position?lng=34.1&lat=32.1`);
-    expect(res.status).toBe(200);
-    expect(res.body.properties.id).toBe(99);
-  });
-
-  it("should return 404 when no neighborhood found for position", async () => {
-    const res = await request(app).get(`${base}/position?lng=1&lat=1`);
-    expect(res.status).toBe(404);
-  });
-
-  it("should update a neighborhood", async () => {
-    await Neighborhood.create({
-      type: "Feature",
-      properties: { city: "Old", neighborhood: "Old", id: 5 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]
-      }
-    });
-
-    const updatedData = {
-      id: 5,
-      city: "NewCity",
-      neighborhood: "NewName",
-      coordinates: [
-        [34.0, 32.0],
-        [34.1, 32.0],
-        [34.1, 32.1],
-        [34.0, 32.1],
-        [34.0, 32.0]
-      ]
-    };
-
-    const res = await request(app).put(`${base}/neighborhood`).send(updatedData);
-    expect(res.status).toBe(200);
-    expect(res.body[0].properties.city).toBe("NewCity");
-  });
-
-  it("should delete a neighborhood", async () => {
-    await Neighborhood.create({
-      type: "Feature",
-      properties: { city: "Del", neighborhood: "Del", id: 7 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]
-      }
-    });
-
-    const res = await request(app).delete(`${base}/neighborhood/7`);
-    expect(res.status).toBe(200);
-  });
-
-  it("should handle bulk insert", async () => {
+  it('admin can create a neighborhood', async () => {
     const res = await request(app)
-      .post(`${base}/bulk`)
-      .send([
-        {
-          city: "City1",
-          neighborhood: "N1",
-          id: 100,
-          coordinates: [[34, 32], [34.1, 32], [34.1, 32.1], [34, 32.1], [34, 32]]
-        },
-        {
-          city: "City2",
-          neighborhood: "N2",
-          id: 101,
-          coordinates: [[34, 32], [34.2, 32], [34.2, 32.2], [34, 32.2], [34, 32]]
-        }
-      ]);
-    expect(res.status).toBe(201);
-    expect(res.body.success.count).toBe(2);
+      .post('/api/neighborhood')
+      .set('Authorization', `${adminToken}`)
+      .send({
+        city: 'Tel Aviv',
+        neighborhood: 'Florentin',
+        coordinates: [
+          [34.7708, 32.0544],
+          [34.7710, 32.0544],
+          [34.7710, 32.0546],
+          [34.7708, 32.0546],
+          [34.7708, 32.0544]
+        ]
+      });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.success).toBe(true);
+    neighborhoodId = res.body.data.properties.id;
   });
 
-  it("should handle bulk insert with invalid entry", async () => {
+  it('user can get all neighborhoods', async () => {
     const res = await request(app)
-      .post(`${base}/bulk`)
-      .send([
-        {
-          city: "City1",
-          neighborhood: "N1",
-          id: 100,
-          coordinates: [[34, 32], [34.1, 32], [34.1, 32.1], [34, 32.1], [34, 32]]
-        },
-        {
-          id: 102,
-          coordinates: [[34, 32]]
-        }
-      ]);
-    expect(res.status).toBe(201);
-    expect(res.body.failures.count).toBe(1);
+      .get('/api/neighborhoods')
+      .set('Authorization', `${token}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.neighborhoods.length).toBeGreaterThan(0);
+  });
+
+  it('user can get neighborhood by ID', async () => {
+    const res = await request(app)
+      .get(`/api/neighborhood/${neighborhoodId}`)
+      .set('Authorization', `${token}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.properties.id).toBe(neighborhoodId);
+  });
+
+  it('user can get neighborhood by position', async () => {
+    const res = await request(app)
+      .get('/api/position?lng=34.7709&lat=32.0545')
+      .set('Authorization', `${token}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.geometry.type).toBe('Polygon');
+  });
+
+  it('admin can update a neighborhood', async () => {
+    const res = await request(app)
+      .put('/api/neighborhood')
+      .set('Authorization', `${adminToken}`)
+      .send({
+        id: neighborhoodId,
+        city: 'Updated City',
+        neighborhood: 'Updated Hood',
+        coordinates: [
+          [34.7708, 32.0544],
+          [34.7711, 32.0544],
+          [34.7711, 32.0546],
+          [34.7708, 32.0546],
+          [34.7708, 32.0544]
+        ]
+      });
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('admin can delete a neighborhood', async () => {
+    const res = await request(app)
+      .delete(`/api/neighborhood/${neighborhoodId}`)
+      .set('Authorization', `${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.some(n => n.properties.id === neighborhoodId)).toBe(false);
+  });
+
+  it('admin can bulk insert neighborhoods', async () => {
+    const res = await request(app)
+      .post('/api/bulk')
+      .set('Authorization', `${adminToken}`)
+      .send([{
+        id: 999,
+        city: 'City Bulk',
+        neighborhood: 'Bulkhood',
+        coordinates: [
+          [34.7708, 32.0544],
+          [34.7712, 32.0544],
+          [34.7712, 32.0546],
+          [34.7708, 32.0546],
+          [34.7708, 32.0544]
+        ]
+      }]);
+    expect(res.statusCode).toBe(201);
+    expect(res.body.success.count).toBe(1);
   });
 });

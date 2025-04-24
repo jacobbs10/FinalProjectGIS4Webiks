@@ -119,6 +119,9 @@ router.post("/neighborhood", authMiddleware, isAdmin, async (req, res) => {
         });
       }
       
+      if (!Array.isArray(coordinates) || !Array.isArray(coordinates[0])) {
+        return res.status(405).json({ message: "Coordinates must be an array of [lon, lat] pairs" });
+      }
       // If id is not provided, find the max id and increment
       let newId = id;
       if (newId === undefined) {
@@ -193,8 +196,13 @@ router.post("/neighborhood", authMiddleware, isAdmin, async (req, res) => {
                 continue;
             }
 
-            if (!city || !neighborhood || !Array.isArray(coordinates)) {
+            if (!city || !neighborhood) {
                 errors.push({ id, error: 'Missing or invalid data' });
+                continue;
+            }
+
+            if (!Array.isArray(coordinates) || !Array.isArray(coordinates[0])) {
+                errors.push({ id, error: "Coordinates must be an array of [lon, lat] pairs" });
                 continue;
             }
 
@@ -242,12 +250,15 @@ router.put("/neighborhood", authMiddleware, isAdmin, async (req, res) => {
     if (!id) {
         return res.status(400).json({ message: "ID of the neighborhood is required" });
     }
+    if (!Array.isArray(coordinates) || !Array.isArray(coordinates[0])) {
+        return res.status(405).json({ message: "Coordinates must be an array of [lon, lat] pairs" });
+    }
 
     try {        
         const updateData = {
             $set: {
                 'properties.city': city,
-                'properties.neigborhood': neighborhood,
+                'properties.neighborhood': neighborhood,
                 'geometry.coordinates': coordinates              
             }
         };

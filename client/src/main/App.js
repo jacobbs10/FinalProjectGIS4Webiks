@@ -295,7 +295,8 @@ const handleLogout = () => {
       <Row className="m-0" style={{ height: "100vh" }}>
         {/* Left Box */}
         <Col
-          md={3} // 30% of the screen width
+          xs={12} // Full width on extra small screens
+          md={3} // 30% of the screen width on medium and larger screens
           className="p-3"
           style={{
             backgroundColor: "#6c757d", // Same color as the header
@@ -309,13 +310,38 @@ const handleLogout = () => {
         </Col>
   
         {/* Main Content */}
-        <Col md={9} className="p-0">
+        <Col xs={12} md={9} className="p-0">
           {/* Header */}
-          <Row className="m-0">
-            <Col className="p-0">
-              {getHeader()}
-            </Col>
-          </Row>
+          <Navbar bg="secondary" variant="dark" expand="lg" className="w-100">
+            <Navbar.Brand className="text-white">Welcome</Navbar.Brand>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Navbar.Collapse id="basic-navbar-nav">
+              <Nav className="ml-auto align-items-center">
+                <Dropdown>
+                  <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
+                    Responders
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item href="#action1">Responder 1</Dropdown.Item>
+                    <Dropdown.Item href="#action2">Responder 2</Dropdown.Item>
+                    <Dropdown.Item href="#action3">Responder 3</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+                <Button
+                  variant="link"
+                  onClick={handleLogout}
+                  className="text-white text-decoration-none mr-3"
+                >
+                  Logout
+                </Button>
+                {user?.role === "Admin" && (
+                  <Link to="/admin" className="text-white text-decoration-none">
+                    Admin
+                  </Link>
+                )}
+              </Nav>
+            </Navbar.Collapse>
+          </Navbar>
   
           {/* Map Section */}
           <Row className="m-0" style={{ height: "calc(100vh - 56px)" }}>
@@ -331,8 +357,6 @@ const handleLogout = () => {
                   attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                {/* Add markers or other map components here */}
-
                 {/* Sniper Scope Button */}
                 <button
                   className={styles.recenterButton}
@@ -352,7 +376,6 @@ const handleLogout = () => {
                     }
                   }}
                 >
-                  {/* Sniper Scope Icon */}
                   <div className={styles.sniperScope}></div>
                 </button>
               </MapContainer>

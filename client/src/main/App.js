@@ -7,25 +7,28 @@ import styles from '../css/NewStyles.module.css';
 import api from '../utils/axios'; 
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Navbar, Nav, Button, Dropdown, Form, FormControl, Container, Row, Col, Modal } from 'react-bootstrap';
+import { Navbar, Nav, Button, Dropdown, Form, Accordion, FormControl, Container, Row, Col, Modal } from 'react-bootstrap';
+import Login from './LoginModal';
+import Register from './RegisterModal';
+import axios from "axios";  
+
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
-    <div className={styles['login-prompt-overlay']}>
-      <div className={styles['login-prompt-content']}>
-        <h2>Session Expired</h2>
+    <Modal show={true} onHide={onClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Session Expired</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
         <p>Your session has expired. Please log in again.</p>
-        <button 
-          onClick={onClose}
-          className={styles.submitButton}
-        >
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="primary" onClick={onClose}>
           OK
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 };
-
-
 
 function App() {
 
@@ -44,6 +47,12 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null); 
   const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [locationsByCategory, setLocationsByCategory] = useState({});
+  const [visibleCategories, setVisibleCategories] = useState([]);
+  const [showLegend, setShowLegend] = useState(false);
+  const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
 
@@ -169,106 +178,201 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const getHeader = () => {
-    if (loggedIn) {
+  useEffect(() => {
+      const fetchEmergencyLocs = async () => {
+        try {
+          const token = sessionStorage.getItem("token");
+          if (!token) {
+            console.warn("No token found in sessionStorage.");
+            return;
+          }
+          const res = await axios.get(`${BASE_URL}/api/emrgLocs/all`, {
+            headers: {
+              Authorization: `${token}`,
+              "Content-Type": "application/json"
+            }
+          });
+          const features = res.data.locations;
+    
+          // Group locations by category and sub_category
+          const grouped = {};
+          features.forEach((feature) => {
+            const category = feature.properties.category || "Uncategorized";
+            const subCategory = feature.properties.sub_category || "Uncategorized";
+
+            if (!grouped[category]) {
+              grouped[category] = {};
+            }
+            if (!grouped[category][subCategory]) {
+              grouped[category][subCategory] = [];
+            }
+            grouped[category][subCategory].push(feature);
+          });
+    
+          setLocationsByCategory(grouped);
+          setVisibleCategories(Object.keys(grouped)); // Default: show all
+          //setVisibleCategories([]);
+        } catch (err) {
+          console.error("Failed to fetch locations:", err);
+        }
+      };
+    
+      fetchEmergencyLocs();
+    }, []);
+
+    const handleCategoryToggle = (category, subCategory, checked) => {
+      const key = `${category}:${subCategory}`;
+      const updated = checked
+        ? [...visibleCategories, key]
+        : visibleCategories.filter((c) => c !== key);
+    
+      setVisibleCategories(updated);
+      localStorage.setItem("visibleCategories", JSON.stringify(updated));
+    };
+
+    const LoginModal = ({ show, onHide }) => {
+      const handleLoginSuccess = (user) => {
+        // Update App.js state when login is successful
+        sessionStorage.setItem("loginStatus", "true");
+        sessionStorage.setItem("user", JSON.stringify(user));
+        setLoggedIn(true);
+        setUser(user);
+        onHide(); // Close the modal
+      };
+    
       return (
-        <Navbar bg="secondary" variant="dark" expand="lg" className="w-100">
-          <Navbar.Brand className="text-white">Welcome</Navbar.Brand>
-          <Nav className="ml-auto align-items-center">
-            <Dropdown>
-              <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
-                Responders
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item href="#action1">Responder 1</Dropdown.Item>
-                <Dropdown.Item href="#action2">Responder 2</Dropdown.Item>
-                <Dropdown.Item href="#action3">Responder 3</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-            <Button
-              variant="link"
-              onClick={handleLogout}
-              className="text-white text-decoration-none mr-3"
-            >
-              Logout
-            </Button>
-            {user?.role === "Admin" && (
-              <Link to="/admin" className="text-white text-decoration-none">
-                Admin
-              </Link>
-            )}
-          </Nav>
-        </Navbar>
+        <Modal show={show} onHide={onHide} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Login</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Login onClose={onHide} onLoginSuccess={handleLoginSuccess} />
+          </Modal.Body>
+        </Modal>
       );
-    } else {
+    };
+    
+    const RegisterModal = ({ show, onHide }) => {    
       return (
-        <Navbar bg="secondary" variant="dark" expand="lg" className="w-100">
-          <Navbar.Brand className="text-white">Welcome</Navbar.Brand>
-          <Nav className="ml-auto align-items-center">
-            <Link to="/login" className="text-white text-decoration-none mr-3">
-              Login
-            </Link>
-            <Link to="/register" className="text-white text-decoration-none ml-3">
-              Register
-            </Link>
-          </Nav>
-        </Navbar>
+        <Modal show={show} onHide={onHide} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Register</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Register onClose={onHide} />
+          </Modal.Body>
+        </Modal>
       );
+    };
+
+    const getHeader = () => {
+        return (
+          <Navbar bg="secondary" variant="dark" expand="lg" className="w-100">
+            <Navbar.Brand className="text-white">Welcome</Navbar.Brand>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Navbar.Collapse id="basic-navbar-nav">
+              <Nav className="ml-auto align-items-center">
+                {loggedIn ? (
+                  <>
+                    <Dropdown>
+                      <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
+                        Responders
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item href="#action1">Responder 1</Dropdown.Item>
+                        <Dropdown.Item href="#action2">Responder 2</Dropdown.Item>
+                        <Dropdown.Item href="#action3">Responder 3</Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                    <Button
+                      variant="link"
+                      onClick={handleLogout}
+                      className="text-white text-decoration-none mr-3"
+                    >
+                      Logout
+                    </Button>
+                    {user?.role === "Admin" && (
+                      <Link to="/admin" className="text-white text-decoration-none">
+                        Admin
+                      </Link>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="link"
+                      className="text-white text-decoration-none mr-3"
+                      onClick={() => setShowLoginModal(true)}
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      variant="link"
+                      className="text-white text-decoration-none ml-3"
+                      onClick={() => setShowRegisterModal(true)}
+                    >
+                      Register
+                    </Button>
+                  </>
+                )}
+              </Nav>
+            </Navbar.Collapse>
+          </Navbar>
+        );
+    };
+
+  const handleTokenExpiration = () => {
+    sessionStorage.removeItem("token"); 
+    sessionStorage.removeItem("loginStatus");
+    sessionStorage.removeItem("userName");
+    
+    setIsTokenValid(false);
+    setLoggedIn(false);  
+    setShowLoginPrompt(true);
+    
+  };
+
+  // Add this new function to handle closing the prompt
+  const handleCloseLoginPrompt = () => {
+    setShowLoginPrompt(false);
+    // Focus on the username input field
+    const usernameInput = document.querySelector('input[name="username"]');
+    if (usernameInput) {
+      usernameInput.focus();
     }
   };
 
-const handleTokenExpiration = () => {
-  sessionStorage.removeItem("token"); 
-  sessionStorage.removeItem("loginStatus");
-  sessionStorage.removeItem("userName");
-  
-  setIsTokenValid(false);
-  setLoggedIn(false);  
-  setShowLoginPrompt(true);
-  
-};
-
-// Add this new function to handle closing the prompt
-const handleCloseLoginPrompt = () => {
-  setShowLoginPrompt(false);
-  // Focus on the username input field
-  const usernameInput = document.querySelector('input[name="username"]');
-  if (usernameInput) {
-    usernameInput.focus();
-  }
-};
-
-// Add axios interceptor for API calls
-useEffect(() => {
-  const interceptor = api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response?.status === 401) {
-        sessionStorage.removeItem("token");
-        setIsTokenValid(false);
-        setLoggedIn(false);
+  // Add axios interceptor for API calls
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          sessionStorage.removeItem("token");
+          setIsTokenValid(false);
+          setLoggedIn(false);
+        }
+        return Promise.reject(error);
       }
-      return Promise.reject(error);
-    }
-  );
+    );
 
-  return () => api.interceptors.response.eject(interceptor);
-}, []);
+    return () => api.interceptors.response.eject(interceptor);
+  }, []);
 
 
-const handleLogout = () => {
-  console.log("Logging out...");
-  // Clear session storage
-  sessionStorage.removeItem("token"); 
-  sessionStorage.removeItem("user");
-  sessionStorage.removeItem("loginStatus");
+  const handleLogout = () => {
+    console.log("Logging out...");
+    // Clear session storage
+    sessionStorage.removeItem("token"); 
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("loginStatus");
 
-  // Reset state
-  setLoggedIn(false);  
-  setIsTokenValid(false);
+    // Reset state
+    setLoggedIn(false);  
+    setIsTokenValid(false);
 
-  window.location.reload();
-};
+    window.location.reload();
+  };
 
   const customIcon = new Icon({
     iconUrl: require("../icons/destination.png"),
@@ -289,9 +393,21 @@ const handleLogout = () => {
     return data.display_name;
   };
 
+  const filteredLocations = Object.entries(locationsByCategory).reduce((acc, [category, subCategories]) => {
+    Object.entries(subCategories).forEach(([subCategory, locations]) => {
+      const key = `${category}:${subCategory}`;
+      if (visibleCategories.includes(key)) {
+        acc.push(...locations);
+      }
+    });
+    return acc;
+  }, []);
+
   return (
     <Container fluid className="p-0">
       {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
+      <LoginModal show={showLoginModal} onHide={() => setShowLoginModal(false)} />
+      <RegisterModal show={showRegisterModal} onHide={() => setShowRegisterModal(false)} />
       <Row className="m-0" style={{ height: "100vh" }}>
         {/* Left Box */}
         <Col
@@ -314,36 +430,7 @@ const handleLogout = () => {
         {/* Main Content */}
         <Col xs={8} sm={9} className="p-0">
           {/* Header */}
-          <Navbar bg="secondary" variant="dark" expand="lg" className="w-100">
-            <Navbar.Brand className="text-white">Welcome</Navbar.Brand>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="ml-auto align-items-center">
-                <Dropdown>
-                  <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
-                    Responders
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item href="#action1">Responder 1</Dropdown.Item>
-                    <Dropdown.Item href="#action2">Responder 2</Dropdown.Item>
-                    <Dropdown.Item href="#action3">Responder 3</Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-                <Button
-                  variant="link"
-                  onClick={handleLogout}
-                  className="text-white text-decoration-none mr-3"
-                >
-                  Logout
-                </Button>
-                {user?.role === "Admin" && (
-                  <Link to="/admin" className="text-white text-decoration-none">
-                    Admin
-                  </Link>
-                )}
-              </Nav>
-            </Navbar.Collapse>
-          </Navbar>
+          {getHeader()}
   
           {/* Map Section */}
           <Row className="m-0" style={{ height: "calc(100vh - 56px)" }}>
@@ -359,6 +446,88 @@ const handleLogout = () => {
                   attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                {/* Floating Legend Button */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    zIndex: 1000,
+                    backgroundColor: "white",
+                    borderRadius: "5px",
+                    boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                    padding: "5px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setShowLegend(!showLegend)}
+                >
+                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                </div>
+
+                {/* Legend Panel */}
+                {showLegend && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50px",
+                      right: "10px",
+                      zIndex: 1000,
+                      backgroundColor: "white",
+                      borderRadius: "5px",
+                      boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                      padding: "10px",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    <h5>Legend</h5>
+                    <Accordion>
+                      {Object.entries(locationsByCategory).map(([category, subCategories]) => (
+                        <Accordion.Item eventKey={category} key={category}>
+                          <Accordion.Header>{category}</Accordion.Header>
+                          <Accordion.Body>
+                            {Object.entries(subCategories).map(([subCategory, locations]) => (
+                              <Form.Check
+                                key={subCategory}
+                                type="checkbox"
+                                label={`${subCategory} (${locations.length})`}
+                                checked={visibleCategories.includes(`${category}:${subCategory}`)}
+                                onChange={(e) => handleCategoryToggle(category, subCategory, e.target.checked)}
+                              />
+                            ))}
+                          </Accordion.Body>
+                        </Accordion.Item>
+                      ))}
+                    </Accordion>
+                  </div>
+                )}
+                {filteredLocations.map((feature, idx) => (
+                  <Marker
+                    key={idx}
+                    position={[
+                      feature.geometry.coordinates[1],
+                      feature.geometry.coordinates[0],
+                    ]}
+                    icon={customIcon}
+                  >
+                    <Popup>
+                      <div>
+                        <p><strong>{feature.properties.loc_name}</strong></p>
+                        {feature.properties.photo && (
+                          <img
+                            className={styles.popupImg}
+                            src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
+                            alt={feature.properties.loc_name}
+                          />
+                        )}
+                        <p>{feature.properties.description}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
                 {/* Sniper Scope Button */}
                 <button
                   className={styles.recenterButton}

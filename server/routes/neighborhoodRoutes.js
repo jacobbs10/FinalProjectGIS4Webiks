@@ -66,6 +66,49 @@ router.get("/neighborhood/:id", authMiddleware, async (req, res) => {
     }   
 });
 
+// Get neighborhoods by an array of IDs
+router.get("/IdList", authMiddleware, async (req, res) => {
+    try {
+        // Get the array of IDs from the query parameters
+        const ids = req.query.ids;
+
+        // Validate that at least one ID is provided
+        if (!ids || ids.length === 0) {
+            return res.status(400).json({ 
+                message: "At least one ID must be provided as a query parameter" 
+            });
+        }
+
+        // Convert the IDs to an array of numbers
+        const idArray = Array.isArray(ids) ? ids.map(Number) : [Number(ids)];
+
+        // Validate that all IDs are valid numbers
+        if (idArray.some(isNaN)) {
+            return res.status(400).json({ 
+                message: "All IDs must be valid numbers" 
+            });
+        }
+
+        // Find neighborhoods with the provided IDs
+        const neighborhoods = await Neighborhood.find({
+            'properties.id': { $in: idArray }
+        });
+
+        // Check if any neighborhoods were found
+        if (neighborhoods.length === 0) {
+            return res.status(404).json({ 
+                message: "No neighborhoods found for the provided IDs" 
+            });
+        }
+
+        // Return the found neighborhoods
+        res.json(neighborhoods);
+    } catch (error) {
+        console.error("Error fetching neighborhoods by IDs:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 // Get neighborhood by position (coordinates)
 router.get("/position", authMiddleware, async (req, res) => {
     try {

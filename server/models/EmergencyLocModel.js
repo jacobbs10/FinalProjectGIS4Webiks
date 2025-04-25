@@ -80,6 +80,10 @@ const PropertiesSchema = new mongoose.Schema({
     incident_end_time: {
         type: Date,
         required: false 
+    },    
+    qtrs_list: {
+        type: [Number], // Array of numbers
+        required: false // Optional field
     },
     equipment: [{
         type: {

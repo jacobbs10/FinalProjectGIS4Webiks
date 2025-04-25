@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import FixedHeader from "../components/FixedHeader";
+// import FixedHeader from "../components/FixedHeader"; HIDDEN 1of2
 import styles from "../css/MainStyles.module.css";
 
 const AdminUsers = () => {
@@ -69,6 +69,66 @@ const AdminUsers = () => {
     fetchUsers();
   }, []);
   
+
+/*   useEffect(() => {
+    if (!sortBy) {
+      setUsers([...allUsers]);
+      return;
+    }
+  
+    const sorted = [...allUsers].sort((a, b) => {
+      const valA = a[sortBy];
+      const valB = b[sortBy];
+  
+      if (sortBy === "user_updated" || sortBy === "user_modified" || sortBy === "updatedAt") {
+        return new Date(valB) - new Date(valA); // Newest first
+      }
+  
+      return valA?.toString().localeCompare(valB?.toString());
+    });
+  
+    setUsers(sorted);
+  }, [sortBy, allUsers]); */
+
+
+  useEffect(() => {
+    if (!sortBy) {
+      setUsers([...allUsers]);
+      return;
+    }
+  
+    const sorted = [...allUsers].sort((a, b) => {
+      let valA = a[sortBy];
+      let valB = b[sortBy];
+  
+      // Modified Date
+      if (sortBy === "user_modified") {
+        valA = a.user_modified || a.updatedAt;
+        valB = b.user_modified || b.updatedAt;
+        if (!valA || !valB) return 0;
+        return new Date(valB) - new Date(valA);
+      }
+  
+      // Created Date
+      if (sortBy === "user_created") {
+        valA = a.user_created || a.createdAt;
+        valB = b.user_created || b.createdAt;
+        if (!valA || !valB) return 0;
+        return new Date(valB) - new Date(valA);
+      }
+  
+      return valB?.toString().localeCompare(valA?.toString());
+    });
+  
+    setUsers(sorted);
+  }, [sortBy, allUsers]);
+  
+  
+  
+
+  
+  
+
 
   const validateNewUser = () => {
     const { username, password, user_firstname, user_lastname, user_cellphone, user_email } = newUser;
@@ -202,7 +262,7 @@ const AdminUsers = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
   
     try {
-      await axios.delete(`h${BASE_URL}/api/users/${id}`, {
+      await axios.delete(`${BASE_URL}/api/users/${id}`, {
         headers: {
           Authorization: `${token}`,
         },
@@ -219,8 +279,11 @@ const AdminUsers = () => {
 
   return (
     <div>
-      <FixedHeader title="Admin User Management" />
+      {/* <FixedHeader title="Admin User Management" HIDDEN 2of2 /> */}
       <div className={styles.adminPanel}>
+
+
+
         <h2>Manage All Users</h2> <br /> <br />
 
 
@@ -251,11 +314,14 @@ const AdminUsers = () => {
 
   <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
     <option value="">Sort By</option>
-    <option value="user_type">User Type</option>
+    <option value="role">User Type</option>
     <option value="user_created">Created Date</option>
+    <option value="user_modified">Modified Date</option>
     <option value="user_status">Status</option>
   </select>
+
 </div>
+
 
 
 
@@ -322,17 +388,16 @@ const AdminUsers = () => {
       onChange={(e) => setNewUser({ ...newUser, user_email: e.target.value })}
     />
   </td>
+  
   <td>
-  {/* <select
+  <select
     name="user_type"
-    value={newUser.user_type}
+    value={newUser.user_type || "Viewer"}
     onChange={(e) => setNewUser({ ...newUser, user_type: e.target.value })}
   >
     <option value="Viewer">Viewer</option>
-    <option value="Admin">Admin</option>
     <option value="Confidential">Confidential</option>
-  </select> */}
-  {newUser.user_type || "Viewer"}
+  </select>
 </td>
 
   <td>
@@ -365,13 +430,16 @@ const AdminUsers = () => {
         <td><input name="user_cellphone" value={editedUser.user_cellphone} onChange={handleEditChange} /></td>
         <td><input name="user_email" value={editedUser.user_email} onChange={handleEditChange} /></td>
         <td>
-  {/* <select name="user_type" value={editedUser.user_type} onChange={handleEditChange}>
+  <select
+    name="user_type"
+    value={editedUser.user_type || editedUser.role || "Viewer"}
+    onChange={handleEditChange}
+  >
     <option value="Viewer">Viewer</option>
-    <option value="Admin">Admin</option>
     <option value="Confidential">Confidential</option>
-  </select> */}
-  {editedUser.user_type || editedUser.role}
+  </select>
 </td>
+
 
         <td><input type="checkbox" name="user_status" checked={editedUser.user_status} onChange={(e) => setEditedUser({...editedUser, user_status: e.target.checked})} /></td>
         <td>{editedUser.user_created}</td>

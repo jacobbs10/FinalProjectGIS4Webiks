@@ -295,6 +295,7 @@ const handleLogout = () => {
       <Row className="m-0" style={{ height: "100vh" }}>
         {/* Left Box */}
         <Col
+
           xs={4} // 4/12 of the screen width on extra small screens
           sm={3} // 3/12 (25%) of the screen width on small and larger screens
           className="p-3"

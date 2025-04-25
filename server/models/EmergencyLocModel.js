@@ -73,6 +73,14 @@ const PropertiesSchema = new mongoose.Schema({
         type: String,
         required: false       
     },
+    incident_start_time: {
+        type: Date,
+        required: false 
+    },
+    incident_end_time: {
+        type: Date,
+        required: false 
+    },
     equipment: [{
         type: {
             type: String,

@@ -339,7 +339,7 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
       // Extract data from request body
       const {
         id, category, sub_category, loc_name, address, description, restricted,
-        email, phone, site, loc_status, photo, coordinates,
+        email, phone, site, loc_status, photo, incident_start_time, incident_end_time, coordinates,
         equipment, vehicles, total_personal, available_personal, min_personal
     } = req.body;
       
@@ -381,6 +381,8 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
             restricted,
             email,
             phone,
+            incident_start_time,
+            incident_end_time,
             site,
             loc_status,
             photo,
@@ -434,7 +436,7 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
         for (const n of locations) {
             const {
                 id, category, sub_category, loc_name, address, description, restricted,
-                email, phone, site, loc_status, photo, coordinates,
+                email, phone, site, loc_status, photo, incident_start_time, incident_end_time, coordinates,
                 equipment, vehicles, total_personal, available_personal, min_personal
             } = n;
 
@@ -452,7 +454,7 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
                 type: "Feature",
                 properties: {
                     id, category, sub_category, loc_name, address, description, restricted,
-                    email, phone, site, loc_status, photo, equipment, vehicles,
+                    email, phone, incident_start_time, incident_end_time, site, loc_status, photo, equipment, vehicles,
                     total_personal, available_personal, min_personal
                 },
                 geometry: {
@@ -494,7 +496,7 @@ router.post("/location", authMiddleware, isAdmin, async (req, res) => {
 router.put("/location", authMiddleware, isAdmin, async (req, res) => {
     const {
         id, category, sub_category, loc_name, address, description, restricted,
-        email, phone, site, loc_status, photo, coordinates,
+        email, phone, site, loc_status, photo, incident_start_time, incident_end_time, coordinates,
         equipment, vehicles, total_personal, available_personal, min_personal
     } = req.body;
     if (!id) {
@@ -515,6 +517,8 @@ router.put("/location", authMiddleware, isAdmin, async (req, res) => {
                 'properties.site': site,
                 'properties.loc_status': loc_status,
                 'properties.photo': photo,
+                'properties.incident_start_time': incident_start_time,
+                'properties.incident_end_time': incident_end_time,
                 'properties.equipment': equipment,
                 'properties.vehicles': vehicles,
                 'properties.total_personal': total_personal,

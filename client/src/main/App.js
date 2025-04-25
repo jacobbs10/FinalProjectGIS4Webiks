@@ -295,13 +295,15 @@ const handleLogout = () => {
       <Row className="m-0" style={{ height: "100vh" }}>
         {/* Left Box */}
         <Col
-          xs={12} // Full width on extra small screens
-          md={3} // 30% of the screen width on medium and larger screens
+
+          xs={4} // 4/12 of the screen width on extra small screens
+          sm={3} // 3/12 (25%) of the screen width on small and larger screens
           className="p-3"
           style={{
             backgroundColor: "#6c757d", // Same color as the header
             color: "white", // White text
             height: "100vh", // Full height of the viewport
+            overflowY: "auto", // Make content scrollable if it overflows
           }}
         >
           <h5>Active Incidents</h5>
@@ -310,7 +312,7 @@ const handleLogout = () => {
         </Col>
   
         {/* Main Content */}
-        <Col xs={12} md={9} className="p-0">
+        <Col xs={8} sm={9} className="p-0">
           {/* Header */}
           <Navbar bg="secondary" variant="dark" expand="lg" className="w-100">
             <Navbar.Brand className="text-white">Welcome</Navbar.Brand>

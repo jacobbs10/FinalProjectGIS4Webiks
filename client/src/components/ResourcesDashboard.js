@@ -16,7 +16,7 @@ import {
   Button,
   TablePagination,
 } from "@mui/material";
-//
+
 const ResourcesDashboard = ({ show, onHide }) => {
   const [resources, setResources] = useState([]);
   const [category, setCategory] = useState("");
@@ -245,7 +245,8 @@ const ResourcesDashboard = ({ show, onHide }) => {
           >
             Close
           </Button>
-        </Bo      </Box>
+        </Box>
+      </Box>
     </Modal>
   );
 };

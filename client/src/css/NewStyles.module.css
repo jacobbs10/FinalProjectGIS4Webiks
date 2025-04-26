@@ -137,3 +137,18 @@
     padding: 10px;
   }
 }
+
+/* ===============================
+   Modal Styles
+================================= */
+.modal {
+  transition: opacity 0.15s linear;
+}
+
+.modal.show {
+  opacity: 1;
+}
+
+.modal-dialog {
+  transition: transform 0.3s ease-out;
+}

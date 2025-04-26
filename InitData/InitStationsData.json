@@ -1,6 +1,6 @@
 [
   {
-    "id": 1001,
+    "id": "1001",
     "category": "Stations",
     "sub_category": "Police",
     "loc_name": "תחנה מרכזית החדשה",
@@ -70,7 +70,7 @@
     ]
   },
   {
-    "id": 1002,
+    "id": "1002",
     "category": "Stations",
     "sub_category": "Police",
     "loc_name": "תחנת שכונות",
@@ -140,7 +140,7 @@
     ]
   },
   {
-    "id": 1003,
+    "id": "1003",
     "category": "Stations",
     "sub_category": "Police",
     "loc_name": "תחנת לב ת\"א",
@@ -210,7 +210,7 @@
     ]
   },
   {
-    "id": 1004,
+    "id": "1004",
     "category": "Stations",
     "sub_category": "Police",
     "loc_name": "מטה מחוז ת\"א, ענף התנועה, ומרחב יפתח",
@@ -280,7 +280,7 @@
     ]
   },
   {
-    "id": 1005,
+    "id": "1005",
     "category": "Stations",
     "sub_category": "Police",
     "loc_name": "תחנת תל אביב צפון ",
@@ -350,7 +350,7 @@
     ]
   },
   {
-    "id": 1006,
+    "id": "1006",
     "category": "Stations",
     "sub_category": "Police",
     "loc_name": "תחנת שרת ",
@@ -420,7 +420,7 @@
     ]
   },
   {
-    "id": 1021,
+    "id": "1021",
     "category": "Stations",
     "sub_category": "Fire",
     "loc_name": "תחנה  שי",
@@ -485,7 +485,7 @@
     ]
   },
   {
-    "id": 1022,
+    "id": "1022",
     "category": "Stations",
     "sub_category": "Fire",
     "loc_name": "תחנה עתידים",
@@ -550,7 +550,7 @@
     ]
   },
   {
-    "id": 1023,
+    "id": "1023",
     "category": "Stations",
     "sub_category": "Fire",
     "loc_name": "תחנת אלון",
@@ -615,7 +615,7 @@
     ]
   },
   {
-    "id": 1024,
+    "id": "1024",
     "category": "Stations",
     "sub_category": "Fire",
     "loc_name": "תחנת יפו",
@@ -680,7 +680,7 @@
     ]
   },
   {
-    "id": 1025,
+    "id": "1025",
     "category": "Stations",
     "sub_category": "Fire",
     "loc_name": "תחנת שרונה",
@@ -745,7 +745,7 @@
     ]
   },
   {
-    "id": 1011,
+    "id": "1011",
     "category": "Stations",
     "sub_category": "Medical",
     "loc_name": "תחנת תל אביב",
@@ -803,7 +803,7 @@
     ]
   },
   {
-    "id": 1012,
+    "id": "1012",
     "category": "Stations",
     "sub_category": "Medical",
     "loc_name": "לב העיר",
@@ -861,7 +861,7 @@
     ]
   },
   {
-    "id": 1013,
+    "id": "1013",
     "category": "Stations",
     "sub_category": "Medical",
     "loc_name": "תחנת יפו",
@@ -919,7 +919,7 @@
     ]
   },
   {
-    "id": 1014,
+    "id": "1014",
     "category": "Stations",
     "sub_category": "Medical",
     "loc_name": "נקודת הזנקה אוניברסיטה",
@@ -977,7 +977,7 @@
     ]
   },
   {
-    "id": 1015,
+    "id": "1015",
     "category": "Stations",
     "sub_category": "Medical",
     "loc_name": "נקודת הזנקה רמת החייל",

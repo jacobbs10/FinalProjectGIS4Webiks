@@ -7,10 +7,12 @@ import styles from '../css/NewStyles.module.css';
 import api from '../utils/axios'; 
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Navbar, Nav, Button, Dropdown, Form, Accordion, FormControl, Container, Row, Col, Modal } from 'react-bootstrap';
+import { Navbar, Nav, Button, Dropdown, Form, Accordion, Table, Badge, FormControl, Container, Row, Col, Modal } from 'react-bootstrap';
+import { format } from 'date-fns';
 import Login from './LoginModal';
 import Register from './RegisterModal';
 import axios from "axios";  
+import AddIncident from '../components/AddIncident';
 
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
@@ -52,6 +54,11 @@ function App() {
   const [locationsByCategory, setLocationsByCategory] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
   const [showLegend, setShowLegend] = useState(false);
+    // Add inside App function, with other state declarations
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [showIncidentDetails, setShowIncidentDetails] = useState(false);
+  const [showAddIncident, setShowAddIncident] = useState(false);
+  const [activeKeys, setActiveKeys] = useState([]);
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
@@ -408,23 +415,99 @@ function App() {
       {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
       <LoginModal show={showLoginModal} onHide={() => setShowLoginModal(false)} />
       <RegisterModal show={showRegisterModal} onHide={() => setShowRegisterModal(false)} />
+      <AddIncident 
+        show={showAddIncident}
+        onHide={() => setShowAddIncident(false)}
+        onAdd={(data) => {
+          // Handle adding new incident
+          console.log("New incident data:", data);
+        }}
+      />
       <Row className="m-0" style={{ height: "100vh" }}>
-        {/* Left Box */}
-        <Col
-
-          xs={4} // 4/12 of the screen width on extra small screens
-          sm={3} // 3/12 (25%) of the screen width on small and larger screens
-          className="p-3"
-          style={{
-            backgroundColor: "#6c757d", // Same color as the header
-            color: "white", // White text
-            height: "100vh", // Full height of the viewport
-            overflowY: "auto", // Make content scrollable if it overflows
-          }}
-        >
-          <h5>Active Incidents</h5>
-          <p>תהיה טבלה של אירועים</p>
-          {/* Add more content here */}
+        {/* Left Box */}                
+        <Col xs={4} sm={3} className="p-3" style={{
+          backgroundColor: "#6c757d",
+          color: "white",
+          height: "100vh",
+          overflowY: "auto"
+        }}>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5>Active Incidents</h5>
+            <Button 
+              variant="light" 
+              size="sm"
+              onClick={() => setShowAddIncident(true)}
+            >
+              <i className="fas fa-plus"></i> New Incident
+            </Button>
+          </div>
+          
+          <Accordion>
+            {Object.entries(
+              filteredLocations
+                .filter(loc => loc.properties.category === 'Incidents')
+                .reduce((acc, incident) => {
+                  const subCat = incident.properties.sub_category;
+                  if (!acc[subCat]) acc[subCat] = [];
+                  acc[subCat].push(incident);
+                  return acc;
+                }, {})
+            ).map(([subCategory, incidents], idx) => (
+              <Accordion.Item eventKey={idx.toString()} key={idx} className="mb-2">
+                <Accordion.Header>
+                  <div className="d-flex justify-content-between w-100 align-items-center pe-3">
+                    <span>{subCategory}</span>
+                    <Badge bg="light" text="dark">
+                      {incidents.length}
+                    </Badge>
+                  </div>
+                </Accordion.Header>
+                <Accordion.Body className="p-0">
+                  <Table striped hover variant="dark" responsive className="mb-0">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {incidents.map((incident, idx) => (
+                        <tr key={idx}>
+                          <td>{incident.properties.loc_name}</td>
+                          <td>
+                            <Badge bg={
+                              incident.properties.loc_status === 'Open' ? 'danger' :
+                              incident.properties.loc_status === 'InProgress' ? 'warning' :
+                              'success'
+                            }>
+                              {incident.properties.loc_status}
+                            </Badge>
+                          </td>
+                          <td>
+                            {format(new Date(incident.properties.incident_start_time), 'HH:mm dd/MM')}
+                          </td>
+                          <td>
+                            <Button
+                              variant="info"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedIncident(incident);
+                                setShowIncidentDetails(true);
+                              }}
+                            >
+                              Details
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </Accordion.Body>
+              </Accordion.Item>
+            ))}
+          </Accordion>
         </Col>
   
         {/* Main Content */}
@@ -466,7 +549,53 @@ function App() {
                   <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
                   <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
                 </div>
-
+                {showIncidentDetails && selectedIncident && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50px",
+                      right: "10px",
+                      zIndex: 1001,
+                      backgroundColor: "white",
+                      borderRadius: "5px",
+                      boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                      padding: "15px",
+                      width: "300px",
+                    }}
+                  >
+                    <div className="d-flex justify-content-between mb-3">
+                      <h5>Incident Details</h5>
+                      <Button 
+                        variant="outline-secondary" 
+                        size="sm"
+                        onClick={() => setShowIncidentDetails(false)}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                    <div>
+                      <p><strong>Name:</strong> {selectedIncident.properties.loc_name}</p>
+                      <p><strong>Address:</strong> {selectedIncident.properties.address}</p>
+                      <p><strong>Description:</strong> {selectedIncident.properties.description}</p>
+                      <p><strong>Status:</strong> {selectedIncident.properties.loc_status}</p>
+                      <p><strong>Start Time:</strong> {
+                        format(new Date(selectedIncident.properties.incident_start_time), 
+                        'HH:mm dd/MM/yyyy')
+                      }</p>
+                      <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="w-100"
+                        onClick={() => {
+                          // Handle update incident
+                          console.log("Update incident:", selectedIncident.properties.id);
+                        }}
+                      >
+                        Update Status
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 {/* Legend Panel */}
                 {showLegend && (
                   <div

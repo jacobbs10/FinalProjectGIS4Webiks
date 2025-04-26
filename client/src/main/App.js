@@ -7,14 +7,17 @@ import styles from '../css/NewStyles.module.css';
 import api from '../utils/axios'; 
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Navbar, Nav, Button, Dropdown, Form, Accordion, Table, Badge, FormControl, Container, Row, Col, Modal } from 'react-bootstrap';
+import { Navbar, Nav, Button, Dropdown, Form, Accordion, Table, Badge, FormControl, Container, Row, Col, Modal, Toast } from 'react-bootstrap';
 import { format } from 'date-fns';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import ResourcesDashboard from '../components/ResourcesDashboard';
 import axios from "axios";  
-import AddIncident from '../components/AddIncident';
-import QtrsComp from '../components/QtrsComp';
+import UpdateIncident from '../components/UpdateIncident';
+import QtrsComp from '../components/QtrsComp'
+import CreateIncidentModal from '../components/CreateIncidentModal';
+import AutoGeneratorModal from '../components/AutoGeneratorModal';
+import { startGenerator } from '../components/IncGenerator';
 
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
@@ -54,8 +57,10 @@ function App() {
   const [modalStates, setModalStates] = useState({
     login: false,
     register: false,
-    addIncident: false,
-    resources: false
+    updateIncident: false,
+    resources: false,
+    autoGenerator: false,
+    createIncident: false
   });
   const [locationsByCategory, setLocationsByCategory] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
@@ -66,6 +71,7 @@ function App() {
   const [qtrs, setQtrs] = useState([]);
   const [selectedQtr, setSelectedQtr] = useState(null);
   const [checkedQtrs, setCheckedQtrs] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
@@ -235,6 +241,32 @@ function App() {
     fetchLocsAndQtrs();
   }, [qtrs]);
 
+  useEffect(() => {
+    const handleNewIncident = (event) => {
+      const incident = event.detail;
+      addNotification(incident);
+    };
+  
+    window.addEventListener('newIncident', handleNewIncident);
+    return () => window.removeEventListener('newIncident', handleNewIncident);
+  }, []);
+
+  useEffect(() => {
+    const handleNewIncident = (event) => {
+      const incident = event.detail;
+      const id = Math.random().toString(36).substr(2, 9);
+      setNotifications(prev => [...prev, { id, incident }]);
+      
+      // Optionally auto-remove notification after 5 seconds
+      setTimeout(() => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+      }, 5000);
+    };
+  
+    window.addEventListener('newIncident', handleNewIncident);
+    return () => window.removeEventListener('newIncident', handleNewIncident);
+  }, []);
+
     const handleCategoryToggle = (category, subCategory, checked) => {
       const key = `${category}:${subCategory}`;
       const updated = checked
@@ -243,6 +275,16 @@ function App() {
     
       setVisibleCategories(updated);
       localStorage.setItem("visibleCategories", JSON.stringify(updated));
+    };
+
+    const addNotification = (incident) => {
+      const id = Math.random().toString(36).slice(2, 11);
+      setNotifications(prev => [...prev, { id, incident }]);
+    };
+
+    const handleStopGenerator = () => {
+      sessionStorage.removeItem("GenerateInc");
+      alert("Generator stopped");
     };
 
     const handleLoginSuccess = (user) => {
@@ -321,17 +363,7 @@ function App() {
                     />
                   ))}
                 </Dropdown.Menu>
-              </Dropdown>
-                    <Dropdown>
-                      <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
-                        Responders
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item href="#action1">Responder 1</Dropdown.Item>
-                        <Dropdown.Item href="#action2">Responder 2</Dropdown.Item>
-                        <Dropdown.Item href="#action3">Responder 3</Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
+              </Dropdown>                    
                     {user?.role === "Admin" && (
                       <Button
                         className="btn btn-link text-white text-decoration-none mr-3"
@@ -340,6 +372,27 @@ function App() {
                         Resources
                       </Button>
                     )}
+                    <Button
+                      variant="link"
+                      className="text-white text-decoration-none mr-3"
+                      onClick={() => setModalStates(prev => ({...prev, createIncident: true}))}
+                    >
+                      New Incident
+                    </Button>
+                    <Button
+                      variant="link"
+                      className="text-white text-decoration-none mr-3"
+                      onClick={() => setModalStates(prev => ({...prev, autoGenerator: true}))}
+                    >
+                      Auto Generator
+                    </Button>
+                    <Button
+                      variant="link"
+                      className="text-white text-decoration-none mr-3"
+                      onClick={handleStopGenerator}
+                    >
+                      Stop Generator
+                    </Button>
                     <Button
                       variant="link"
                       onClick={handleLogout}
@@ -461,7 +514,36 @@ function App() {
   return (
     <>
       <QtrsComp qtrs={qtrs} setQtrs={setQtrs} />
-      <Container fluid className="p-0">
+      <Container fluid className="p-0">            
+      <div
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999,
+          maxWidth: '300px'
+        }}
+      >
+        {notifications.map(({ id, incident }) => (
+          <Toast
+            key={id}
+            onClose={() => setNotifications(prev => prev.filter(n => n.id !== id))}
+            show={true}
+            delay={5000}
+            autohide
+          >
+            <Toast.Header>
+              <strong className="me-auto">New Incident</strong>
+              <small>{incident?.properties?.sub_category || 'Unknown Type'}</small>
+            </Toast.Header>
+            <Toast.Body>
+              <p><strong>ID:</strong> {incident?.id || 'N/A'}</p>
+              <p><strong>Location:</strong> {incident?.properties?.loc_name || 'N/A'}</p>
+              <p><strong>Type:</strong> {incident?.properties?.sub_category || 'N/A'}</p>
+            </Toast.Body>
+          </Toast>
+        ))}
+      </div>
         {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
         <LoginModal 
           show={modalStates.login} 
@@ -472,14 +554,40 @@ function App() {
           show={modalStates.register} 
           onHide={() => setModalStates(prev => ({...prev, register: false}))}
         />
-        <AddIncident 
-          show={modalStates.addIncident}
-          onHide={() => setModalStates(prev => ({...prev, addIncident: false}))}
-          onAdd={(data) => {
-            // Handle adding new incident
-            console.log("New incident data:", data);
+        <UpdateIncident 
+          show={modalStates.updateIncident}
+          onHide={() => {
+            setModalStates(prev => ({...prev, updateIncident: false}));
+            setShowIncidentDetails(true); // Show details popup again
           }}
-        />        
+          incident={selectedIncident}
+        />
+        <CreateIncidentModal
+          show={modalStates.createIncident}
+          onHide={() => setModalStates(prev => ({...prev, createIncident: false}))}
+        />
+        <AutoGeneratorModal
+          show={modalStates.autoGenerator}
+          onHide={() => setModalStates(prev => ({...prev, autoGenerator: false}))}
+          onStart={(settings) => {
+            if (sessionStorage.getItem("GenerateInc") === "true") {
+              alert("Generator is already running!");
+              return;
+            }
+            console.log("Starting generator with settings:", settings); // Debug log
+            sessionStorage.setItem("GenerateInc", "true");
+            startGenerator(settings)
+              .then(() => {
+                console.log("Generator started successfully");
+                setModalStates(prev => ({...prev, autoGenerator: false}));
+              })
+              .catch(error => {
+                console.error("Failed to start generator:", error);
+                sessionStorage.removeItem("GenerateInc");
+                alert("Failed to start generator: " + error.message);
+              });
+          }}
+        />     
         <ResourcesDashboard 
           show={modalStates.resources}
           onHide={() => setModalStates(prev => ({...prev, resources: false}))}          
@@ -495,13 +603,6 @@ function App() {
           }}>
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5>Active Incidents</h5>
-              <Button 
-                variant="light" 
-                size="sm"
-                onClick={() => setModalStates(prev => ({...prev, addIncident: true}))}
-              >
-                <i className="fas fa-plus"></i> New Incident
-              </Button>
             </div>
             
             <Accordion>
@@ -633,6 +734,7 @@ function App() {
                     <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
                     <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
                   </div>
+                                    // Find and replace the incident details popup div with this updated version:
                   {showIncidentDetails && selectedIncident && (
                     <div
                       style={{
@@ -646,10 +748,13 @@ function App() {
                         padding: "15px",
                         width: "300px",
                         color: "black",
+                        maxHeight: "calc(100vh - 100px)", // Set maximum height
+                        display: "flex",
+                        flexDirection: "column"
                       }}
                     >
                       <div className="d-flex justify-content-between mb-3">
-                        <h5>Incident Details</h5>
+                        <h5 style={{ margin: 0 }}>Incident Details</h5>
                         <Button 
                           variant="outline-secondary" 
                           size="sm"
@@ -661,75 +766,79 @@ function App() {
                           ×
                         </Button>
                       </div>
-                      {selectedIncident?.properties ? (
-                        <div>
-                          <p><strong>Type:</strong> {selectedIncident.properties.sub_category || 'N/A'}</p>
-                          <p><strong>Name:</strong> {selectedIncident.properties.loc_name || 'N/A'}</p>
-                          <p><strong>Address:</strong> {selectedIncident.properties.address || 'N/A'}</p>
-                          <p><strong>Description:</strong> {selectedIncident.properties.description || 'N/A'}</p>
-                          <p><strong>Status:</strong> {selectedIncident.properties.loc_status || 'N/A'}</p>
-                          {selectedIncident.properties.incident_start_time && (
-                            <p><strong>Started:</strong> {
-                              format(new Date(selectedIncident.properties.incident_start_time), 
-                              'HH:mm dd/MM/yyyy')
-                            }</p>
-                          )}
-                          
-                          {Array.isArray(selectedIncident.properties.equipment) && (
-                            <div className="mt-3">
-                              <p><strong>Equipment:</strong></p>
-                              {selectedIncident.properties.equipment.map((item, idx) => (
-                                <p key={idx} style={{ 
-                                  color: item.qty < item.min_qty ? 'red' : 'inherit',
-                                  marginLeft: '10px',
-                                  marginBottom: '5px'
-                                }}>
-                                  {item.qty} {item.type}
-                                </p>
-                              ))}
-                            </div>
-                          )}
-
-                          {Array.isArray(selectedIncident.properties.vehicles) && (
-                            <div className="mt-3">
-                              <p><strong>Vehicles:</strong></p>
-                              {selectedIncident.properties.vehicles.map((vehicle, idx) => (
-                                <p key={idx} style={{ 
-                                  color: vehicle.qty < vehicle.min_qty ? 'red' : 'inherit',
-                                  marginLeft: '10px',
-                                  marginBottom: '5px'
-                                }}>
-                                  {vehicle.qty} {vehicle.type}
-                                </p>
-                              ))}
-                            </div>
-                          )}
-
-                          {selectedIncident.properties.available_personal !== undefined && (
-                            <p style={{ 
-                              color: selectedIncident.properties.available_personal < selectedIncident.properties.min_personal ? 'red' : 'inherit'
-                            }}>
-                              <strong>Responders:</strong> {selectedIncident.properties.available_personal}
-                            </p>
-                          )}
-
-                          <Button 
-                            variant="primary" 
-                            size="sm" 
-                            className="w-100 mt-3"
-                            onClick={() => {
-                              console.log("Update incident:", selectedIncident.properties.id);
-                            }}
-                          >
-                            Update Status
-                          </Button>
-                        </div>
-                      ) : (
-                        <p>Loading incident details...</p>
-                      )}
+                      
+                      <div style={{ overflowY: "auto", flexGrow: 1 }}> {/* Scrollable container */}
+                        {selectedIncident?.properties ? (
+                          <div>
+                            <p><strong>Type:</strong> {selectedIncident.properties.sub_category || 'N/A'}</p>
+                            <p><strong>Name:</strong> {selectedIncident.properties.loc_name || 'N/A'}</p>
+                            <p><strong>Address:</strong> {selectedIncident.properties.address || 'N/A'}</p>
+                            <p><strong>Description:</strong> {selectedIncident.properties.description || 'N/A'}</p>
+                            <p><strong>Status:</strong> {selectedIncident.properties.loc_status || 'N/A'}</p>
+                            {selectedIncident.properties.incident_start_time && (
+                              <p><strong>Started:</strong> {
+                                format(new Date(selectedIncident.properties.incident_start_time), 
+                                'HH:mm dd/MM/yyyy')
+                              }</p>
+                            )}
+                            
+                            {Array.isArray(selectedIncident.properties.equipment) && (
+                              <div className="mt-3">
+                                <p><strong>Equipment:</strong></p>
+                                {selectedIncident.properties.equipment.map((item, idx) => (
+                                  <p key={idx} style={{ 
+                                    color: item.qty < item.min_qty ? 'red' : 'inherit',
+                                    marginLeft: '10px',
+                                    marginBottom: '5px'
+                                  }}>
+                                    {item.qty} {item.type}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                  
+                            {Array.isArray(selectedIncident.properties.vehicles) && (
+                              <div className="mt-3">
+                                <p><strong>Vehicles:</strong></p>
+                                {selectedIncident.properties.vehicles.map((vehicle, idx) => (
+                                  <p key={idx} style={{ 
+                                    color: vehicle.qty < vehicle.min_qty ? 'red' : 'inherit',
+                                    marginLeft: '10px',
+                                    marginBottom: '5px'
+                                  }}>
+                                    {vehicle.qty} {vehicle.type}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                  
+                            {selectedIncident.properties.available_personal !== undefined && (
+                              <p style={{ 
+                                color: selectedIncident.properties.available_personal < selectedIncident.properties.min_personal ? 'red' : 'inherit'
+                              }}>
+                                <strong>Responders:</strong> {selectedIncident.properties.available_personal}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p>Loading incident details...</p>
+                        )}
+                      </div>
+                  
+                      <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="w-100 mt-3"
+                        onClick={() => {
+                          setShowIncidentDetails(false); // Hide details popup
+                          setModalStates(prev => ({...prev, updateIncident: true})); // Show update modal
+                        }}
+                      >
+                        Update Incident
+                      </Button>
                     </div>
                   )}
-                  {/* Legend Panel */}
+                  {/* Legend Panel */}                                    
                   {showLegend && (
                     <div
                       style={{
@@ -741,12 +850,16 @@ function App() {
                         borderRadius: "5px",
                         boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
                         padding: "10px",
-                        maxHeight: "300px",
-                        overflowY: "auto",
+                        maxHeight: "calc(100vh - 100px)", // Set maximum height relative to viewport
+                        width: "300px",                   // Set fixed width
+                        overflowY: "auto",                // Enable vertical scrolling
+                        overflowX: "hidden"               // Prevent horizontal scrolling
                       }}
                     >
-                      <h5>Legend</h5>
-                      <Accordion>
+                      <h5 style={{ position: "sticky", top: 0, backgroundColor: "white", padding: "5px 0", marginBottom: "10px" }}>
+                        Legend
+                      </h5>
+                      <Accordion style={{ maxHeight: "calc(100% - 40px)" }}>
                         {Object.entries(locationsByCategory).map(([category, subCategories]) => (
                           <Accordion.Item eventKey={category} key={category}>
                             <Accordion.Header>{category}</Accordion.Header>

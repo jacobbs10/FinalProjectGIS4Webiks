@@ -11,6 +11,7 @@ import { Navbar, Nav, Button, Dropdown, Form, Accordion, Table, Badge, FormContr
 import { format } from 'date-fns';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
+import ResourcesDashboard from '../components/ResourcesDashboard';
 import axios from "axios";  
 import AddIncident from '../components/AddIncident';
 import QtrsComp from '../components/QtrsComp';
@@ -53,7 +54,8 @@ function App() {
   const [modalStates, setModalStates] = useState({
     login: false,
     register: false,
-    addIncident: false
+    addIncident: false,
+    resources: false
   });
   const [locationsByCategory, setLocationsByCategory] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
@@ -330,6 +332,14 @@ function App() {
                         <Dropdown.Item href="#action3">Responder 3</Dropdown.Item>
                       </Dropdown.Menu>
                     </Dropdown>
+                    {user?.role === "Admin" && (
+                      <Button
+                        className="btn btn-link text-white text-decoration-none mr-3"
+                        onClick={() => setModalStates(prev => ({...prev, resources: true}))}  
+                      >
+                        Resources
+                      </Button>
+                    )}
                     <Button
                       variant="link"
                       onClick={handleLogout}
@@ -469,6 +479,10 @@ function App() {
             // Handle adding new incident
             console.log("New incident data:", data);
           }}
+        />        
+        <ResourcesDashboard 
+          show={modalStates.resources}
+          onHide={() => setModalStates(prev => ({...prev, resources: false}))}          
         />
 
         <Row className="m-0" style={{ height: "100vh" }}>

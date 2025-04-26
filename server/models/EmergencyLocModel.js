@@ -2,9 +2,17 @@ const mongoose = require('mongoose');
 
 const PropertiesSchema = new mongoose.Schema({
     id: {
-        type: Number,
+        type: String,
         required: true,
-        unique: true
+        unique: true,
+        validate: {
+            validator: function(value) {
+                // Ensures the string contains only digits
+                return /^\d+$/.test(value);
+            },
+            message: 'ID must be a string of digits'
+        }
+      
     },
     category: {
         type: String,
@@ -67,7 +75,7 @@ const PropertiesSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: 'Active',
-        enum: ['Active', 'Suspended', 'Removed']
+        enum: ['Active', 'Open', 'InProgress', 'Closed']
     },
     photo: {
         type: String,

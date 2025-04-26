@@ -54,7 +54,6 @@ function App() {
   const [locationsByCategory, setLocationsByCategory] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
   const [showLegend, setShowLegend] = useState(false);
-    // Add inside App function, with other state declarations
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [showIncidentDetails, setShowIncidentDetails] = useState(false);
   const [showAddIncident, setShowAddIncident] = useState(false);
@@ -366,7 +365,6 @@ function App() {
     return () => api.interceptors.response.eject(interceptor);
   }, []);
 
-
   const handleLogout = () => {
     console.log("Logging out...");
     // Clear session storage
@@ -423,6 +421,7 @@ function App() {
           console.log("New incident data:", data);
         }}
       />
+
       <Row className="m-0" style={{ height: "100vh" }}>
         {/* Left Box */}                
         <Col xs={4} sm={3} className="p-3" style={{

@@ -245,7 +245,8 @@ const ResourcesDashboard = ({ show, onHide }) => {
           >
             Close
           </Button>
-        </Bo      </Box>
+        </Box>
+      </Box>
     </Modal>
   );
 };

@@ -1,11 +1,14 @@
 const fs = require('fs');
 
-const TEL_AVIV_BOUNDS = {
-  north: 32.133729,  // Northern boundary (Ramat HaHayal)
-  south: 32.045670,  // Southern boundary (Yafo)
-  east: 34.820485,   // Eastern boundary (Revised to avoid sea)
-  west: 34.765187    // Western boundary (Revised to avoid sea)
-};
+const TEL_AVIV_POLYGON = [
+  [34.79301, 32.14742],
+  [34.85447, 32.12213],
+  [34.85241, 32.10410],
+  [34.80366, 32.08403],
+  [34.82014, 32.04359],
+  [34.73671, 32.02962],
+  [34.79301, 32.14742]
+];
 
 // Get command line arguments
 const args = process.argv.slice(2);
@@ -33,17 +36,54 @@ if (!validTypes.includes(type)) {
   process.exit(1);
 }
 
+function isPointInPolygon(point, polygon) {
+  const x = point[0], y = point[1];
+  let inside = false;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i][0], yi = polygon[i][1];
+    const xj = polygon[j][0], yj = polygon[j][1];
+
+    const intersect = ((yi > y) !== (yj > y))
+        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+function getBoundingBox(polygon) {
+  const bounds = {
+    minX: Infinity,
+    minY: Infinity,
+    maxX: -Infinity,
+    maxY: -Infinity
+  };
+
+  for (const point of polygon) {
+    bounds.minX = Math.min(bounds.minX, point[0]);
+    bounds.minY = Math.min(bounds.minY, point[1]);
+    bounds.maxX = Math.max(bounds.maxX, point[0]);
+    bounds.maxY = Math.max(bounds.maxY, point[1]);
+  }
+
+  return bounds;
+}
+
 // Also improve the generateRandomCoordinates function to ensure more realistic distribution
 const generateRandomCoordinates = () => {
-  // Add some padding to avoid edge cases
-  const padding = 0.001;
+  const bounds = getBoundingBox(TEL_AVIV_POLYGON);
+  let point;
   
-  const lat = Math.random() * (TEL_AVIV_BOUNDS.north - TEL_AVIV_BOUNDS.south - padding * 2) + 
-              TEL_AVIV_BOUNDS.south + padding;
-  const lng = Math.random() * (TEL_AVIV_BOUNDS.east - TEL_AVIV_BOUNDS.west - padding * 2) + 
-              TEL_AVIV_BOUNDS.west + padding;
-              
-  return [lng, lat]; // Note: GeoJSON format is [longitude, latitude]
+  // Keep generating points until we find one inside the polygon
+  do {
+    point = [
+      Math.random() * (bounds.maxX - bounds.minX) + bounds.minX,
+      Math.random() * (bounds.maxY - bounds.minY) + bounds.minY
+    ];
+  } while (!isPointInPolygon(point, TEL_AVIV_POLYGON));
+  
+  return point;
 };
 
 const transformData = (numOfIncidents, type) => {

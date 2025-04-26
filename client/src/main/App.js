@@ -1,5 +1,5 @@
 import '../css/App.css';
-import { React, useState, useEffect, useRef } from "react";
+import { React, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap  } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
@@ -18,6 +18,9 @@ import QtrsComp from '../components/QtrsComp'
 import CreateIncidentModal from '../components/CreateIncidentModal';
 import AutoGeneratorModal from '../components/AutoGeneratorModal';
 import { startGenerator } from '../components/IncGenerator';
+import DrawControl from '../components/DrowControl';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
 
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
@@ -72,6 +75,7 @@ function App() {
   const [selectedQtr, setSelectedQtr] = useState(null);
   const [checkedQtrs, setCheckedQtrs] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [areaSelectedIncidents, setAreaSelectedIncidents] = useState([]);
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
@@ -267,6 +271,15 @@ function App() {
     return () => window.removeEventListener('newIncident', handleNewIncident);
   }, []);
 
+  const clearAreaSelection = useCallback(() => {
+    setAreaSelectedIncidents([]);
+  }, []);
+
+  const handleAreaSelect = (incidents) => {
+    setAreaSelectedIncidents(incidents);
+    // Optionally, update visible categories or other state as needed
+  };
+
     const handleCategoryToggle = (category, subCategory, checked) => {
       const key = `${category}:${subCategory}`;
       const updated = checked
@@ -298,6 +311,24 @@ function App() {
       window.location.reload();
     };
     
+    const handleCategorySelectAll = (category, checked) => {
+      const updatedCategories = [...visibleCategories];
+      
+      Object.keys(locationsByCategory[category]).forEach(subCategory => {
+        const key = `${category}:${subCategory}`;
+        const keyIndex = updatedCategories.indexOf(key);
+        
+        if (checked && keyIndex === -1) {
+          updatedCategories.push(key);
+        } else if (!checked && keyIndex !== -1) {
+          updatedCategories.splice(keyIndex, 1);
+        }
+      });
+      
+      setVisibleCategories(updatedCategories);
+      localStorage.setItem("visibleCategories", JSON.stringify(updatedCategories));
+    };
+
     const handleQtrSelect = (qtr) => {
       setSelectedQtr(qtr);
       
@@ -501,15 +532,21 @@ function App() {
     return data.display_name;
   };
 
-  const filteredLocations = Object.entries(locationsByCategory).reduce((acc, [category, subCategories]) => {
-    Object.entries(subCategories).forEach(([subCategory, locations]) => {
-      const key = `${category}:${subCategory}`;
-      if (visibleCategories.includes(key)) {
-        acc.push(...locations);
-      }
-    });
-    return acc;
-  }, []);
+  const filteredLocations = useMemo(() => {
+    const visibleByCategory = Object.entries(locationsByCategory)
+      .reduce((acc, [category, subCategories]) => {
+        Object.entries(subCategories).forEach(([subCategory, locations]) => {
+          const key = `${category}:${subCategory}`;
+          if (visibleCategories.includes(key)) {
+            acc.push(...locations);
+          }
+        });
+        return acc;
+      }, []);
+  
+    // Combine visible categories with area-selected incidents
+    return [...new Set([...visibleByCategory, ...areaSelectedIncidents])];
+  }, [locationsByCategory, visibleCategories, areaSelectedIncidents]);
 
   return (
     <>
@@ -695,6 +732,10 @@ function App() {
                     attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
+                  <DrawControl 
+                    onAreaSelect={handleAreaSelect} 
+                    onClearSelection={clearAreaSelection}
+                  />
                   {qtrs.map((qtr, idx) => {
                     if (!checkedQtrs.includes(qtr.properties.neighborhood)) return null;
                     
@@ -709,7 +750,8 @@ function App() {
                         }}
                       >
                         <Popup>
-                          <strong>{qtr.properties.neighborhood}</strong>
+                          <p><strong>{qtr.properties.neighborhood}</strong></p>
+                          <p><strong>{qtr.properties.id}</strong></p>
                         </Popup>
                       </Polygon>
                     );
@@ -850,32 +892,51 @@ function App() {
                         borderRadius: "5px",
                         boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
                         padding: "10px",
-                        maxHeight: "calc(100vh - 100px)", // Set maximum height relative to viewport
-                        width: "300px",                   // Set fixed width
-                        overflowY: "auto",                // Enable vertical scrolling
-                        overflowX: "hidden"               // Prevent horizontal scrolling
+                        maxHeight: "calc(100vh - 100px)",
+                        width: "300px",
+                        overflowY: "auto",
+                        overflowX: "hidden"
                       }}
                     >
                       <h5 style={{ position: "sticky", top: 0, backgroundColor: "white", padding: "5px 0", marginBottom: "10px" }}>
                         Legend
                       </h5>
                       <Accordion style={{ maxHeight: "calc(100% - 40px)" }}>
-                        {Object.entries(locationsByCategory).map(([category, subCategories]) => (
-                          <Accordion.Item eventKey={category} key={category}>
-                            <Accordion.Header>{category}</Accordion.Header>
-                            <Accordion.Body>
-                              {Object.entries(subCategories).map(([subCategory, locations]) => (
+                        {Object.entries(locationsByCategory).map(([category, subCategories]) => {
+                          const subCategoryKeys = Object.keys(subCategories).map(sub => `${category}:${sub}`);
+                          const allChecked = subCategoryKeys.every(key => visibleCategories.includes(key));
+                          const someChecked = subCategoryKeys.some(key => visibleCategories.includes(key));
+                          
+                          return (
+                            <Accordion.Item eventKey={category} key={category}>
+                              <Accordion.Header>
                                 <Form.Check
-                                  key={subCategory}
                                   type="checkbox"
-                                  label={`${subCategory} (${locations.length})`}
-                                  checked={visibleCategories.includes(`${category}:${subCategory}`)}
-                                  onChange={(e) => handleCategoryToggle(category, subCategory, e.target.checked)}
+                                  label={category}
+                                  checked={allChecked}
+                                  indeterminate={!allChecked && someChecked}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    handleCategorySelectAll(category, e.target.checked);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{ marginRight: '10px' }}
                                 />
-                              ))}
-                            </Accordion.Body>
-                          </Accordion.Item>
-                        ))}
+                              </Accordion.Header>
+                              <Accordion.Body>
+                                {Object.entries(subCategories).map(([subCategory, locations]) => (
+                                  <Form.Check
+                                    key={subCategory}
+                                    type="checkbox"
+                                    label={`${subCategory} (${locations.length})`}
+                                    checked={visibleCategories.includes(`${category}:${subCategory}`)}
+                                    onChange={(e) => handleCategoryToggle(category, subCategory, e.target.checked)}
+                                  />
+                                ))}
+                              </Accordion.Body>
+                            </Accordion.Item>
+                          );
+                        })}
                       </Accordion>
                     </div>
                   )}

@@ -90,7 +90,7 @@ export const startGenerator = async (settings) => {
         incident_end_time: null,
         qtrs_list: [1, 2, 3],
         total_personal: 10,
-        available_personal: 7,
+        available_personal: 0,
         min_personal: 3,
         coordinates: generateRandomCoordinates()
       };
@@ -104,14 +104,14 @@ export const startGenerator = async (settings) => {
             phone: "03-5555100",
             site: "police.com",
             equipment: [
-              { type: "gunPack", qty: 7, standard_qty: 10, min_qty: 3 },
-              { type: "granadePack", qty: 7, standard_qty: 10, min_qty: 3 },
-              { type: "medicalPack", qty: 7, standard_qty: 10, min_qty: 3 },
-              { type: "rescuePack", qty: 7, standard_qty: 10, min_qty: 3 }
+              { type: "gunPack", qty: 0, standard_qty: 10, min_qty: 3 },
+              { type: "granadePack", qty: 0, standard_qty: 10, min_qty: 3 },
+              { type: "medicalPack", qty: 0, standard_qty: 10, min_qty: 3 },
+              { type: "rescuePack", qty: 0, standard_qty: 10, min_qty: 3 }
             ],
             vehicles: [
-              { type: "PatrolCar", qty: 2, min_capasity: 1, standard_qty: 2, min_qty: 1 },
-              { type: "PatrolMoto", qty: 1, min_capasity: 1, standard_qty: 1, min_qty: 0 }
+              { type: "PatrolCar", qty: 0, min_capasity: 1, standard_qty: 2, min_qty: 1 },
+              { type: "PatrolMoto", qty: 0, min_capasity: 1, standard_qty: 1, min_qty: 0 }
             ]
           };
           case "Fire":
@@ -122,13 +122,13 @@ export const startGenerator = async (settings) => {
             phone: "03-5555102",
             site: "fire.com",
             equipment: [
-            { type: "medicalPack", qty: 1, standard_qty: 3, min_qty: 1 },
-            { type: "rescuePack", qty: 1, standard_qty: 3, min_qty: 1 }
+            { type: "medicalPack", qty: 0, standard_qty: 3, min_qty: 1 },
+            { type: "rescuePack", qty: 0, standard_qty: 3, min_qty: 1 }
             ],
             vehicles: [
-            { type: "FireCommand", qty: 1, min_capasity: 5, standard_qty: 1, min_qty: 1 },
-            { type: "FireBig", qty: 2, min_capasity: 5, standard_qty: 2, min_qty: 1 },
-            { type: "RescueTruck", qty: 1, min_capasity: 5, standard_qty: 1, min_qty: 0 }
+            { type: "FireCommand", qty: 0, min_capasity: 5, standard_qty: 1, min_qty: 1 },
+            { type: "FireBig", qty: 0, min_capasity: 5, standard_qty: 2, min_qty: 1 },
+            { type: "RescueTruck", qty: 0, min_capasity: 5, standard_qty: 1, min_qty: 0 }
             ]
           };
           case "Medical":
@@ -139,10 +139,10 @@ export const startGenerator = async (settings) => {
             phone: "03-5555101",
             site: "medical.com",
             equipment: [
-              { type: "medicalPack", qty: 1, standard_qty: 1, min_qty: 1 } 
+              { type: "medicalPack", qty: 0, standard_qty: 1, min_qty: 1 } 
             ],
             vehicles: [
-              { type: "Ambulance", qty: 1, min_capasity: 2, standard_qty: 0, min_qty: 0 },
+              { type: "Ambulance", qty: 0, min_capasity: 2, standard_qty: 0, min_qty: 0 },
               { type: "Motobulance", qty: 0, min_capasity: 1, standard_qty: 1, min_qty: 1 }
             ]
           };
@@ -154,11 +154,11 @@ export const startGenerator = async (settings) => {
             phone: "03-5555109",
             site: "armyRescue.com",
             equipment: [
-              { type: "medicalPack", qty: 1, standard_qty: 1, min_qty: 1 },          
-              { type: "rescuePack", qty: 4, standard_qty: 10, min_qty: 5 }
+              { type: "medicalPack", qty: 0, standard_qty: 1, min_qty: 1 },          
+              { type: "rescuePack", qty: 0, standard_qty: 10, min_qty: 5 }
             ],
             vehicles: [
-              { type: "RescueTruck", qty: 4, min_capasity: 5, standard_qty: 6, min_qty: 3 }
+              { type: "RescueTruck", qty: 0, min_capasity: 5, standard_qty: 6, min_qty: 3 }
             ]
           };
           case "Combined":
@@ -169,16 +169,16 @@ export const startGenerator = async (settings) => {
             phone: "03-5555666",
             site: "combined.com",
             equipment: [
-              { type: "medicalPack", qty: 20, standard_qty: 30, min_qty: 10 },          
-              { type: "rescuePack", qty: 4, standard_qty: 10, min_qty: 5 }
+              { type: "medicalPack", qty: 0, standard_qty: 30, min_qty: 10 },          
+              { type: "rescuePack", qty: 0, standard_qty: 10, min_qty: 5 }
             ],
             vehicles: [
-              { type: "PatrolCar", qty: 3, min_capasity: 1, standard_qty: 5, min_qty: 3 },
-              { type: "PatrolMoto", qty: 2, min_capasity: 1, standard_qty: 4, min_qty: 2 },
-              { type: "FireCommand", qty: 1, min_capasity: 5, standard_qty: 1, min_qty: 1 },
-              { type: "FireBig", qty: 3, min_capasity: 5, standard_qty: 4, min_qty: 2 },
-              { type: "RescueTruck", qty: 2, min_capasity: 5, standard_qty: 7, min_qty: 3 },
-              { type: "Ambulance", qty: 1, min_capasity: 4, standard_qty: 7, min_qty: 5 },
+              { type: "PatrolCar", qty: 0, min_capasity: 1, standard_qty: 5, min_qty: 3 },
+              { type: "PatrolMoto", qty: 0, min_capasity: 1, standard_qty: 4, min_qty: 2 },
+              { type: "FireCommand", qty: 0, min_capasity: 5, standard_qty: 1, min_qty: 1 },
+              { type: "FireBig", qty: 0, min_capasity: 5, standard_qty: 4, min_qty: 2 },
+              { type: "RescueTruck", qty: 0, min_capasity: 5, standard_qty: 7, min_qty: 3 },
+              { type: "Ambulance", qty: 0, min_capasity: 4, standard_qty: 7, min_qty: 5 },
               { type: "Motobulance", qty: 0, min_capasity: 4, standard_qty: 6, min_qty: 4}
             ]
           };      

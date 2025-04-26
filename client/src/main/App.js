@@ -1,6 +1,6 @@
 import '../css/App.css';
 import { React, useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap  } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap  } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import styles from '../css/NewStyles.module.css';
@@ -13,6 +13,7 @@ import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import axios from "axios";  
 import AddIncident from '../components/AddIncident';
+import QtrsComp from '../components/QtrsComp';
 
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
@@ -60,6 +61,9 @@ function App() {
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [showIncidentDetails, setShowIncidentDetails] = useState(false);  
   const [activeKeys, setActiveKeys] = useState([]);
+  const [qtrs, setQtrs] = useState([]);
+  const [selectedQtr, setSelectedQtr] = useState(null);
+  const [checkedQtrs, setCheckedQtrs] = useState([]);
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
@@ -187,46 +191,47 @@ function App() {
   }, []);
 
   useEffect(() => {
-      const fetchEmergencyLocs = async () => {
-        try {
-          const token = sessionStorage.getItem("token");
-          if (!token) {
-            console.warn("No token found in sessionStorage.");
-            return;
-          }
-          const res = await axios.get(`${BASE_URL}/api/emrgLocs/all`, {
-            headers: {
-              Authorization: `${token}`,
-              "Content-Type": "application/json"
-            }
-          });
-          const features = res.data.locations;
-    
-          // Group locations by category and sub_category
-          const grouped = {};
-          features.forEach((feature) => {
-            const category = feature.properties.category || "Uncategorized";
-            const subCategory = feature.properties.sub_category || "Uncategorized";
-
-            if (!grouped[category]) {
-              grouped[category] = {};
-            }
-            if (!grouped[category][subCategory]) {
-              grouped[category][subCategory] = [];
-            }
-            grouped[category][subCategory].push(feature);
-          });
-    
-          setLocationsByCategory(grouped);
-          setVisibleCategories(Object.keys(grouped)); // Default: show all
-          //setVisibleCategories([]);
-        } catch (err) {
-          console.error("Failed to fetch locations:", err);
+    const fetchLocsAndQtrs = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+          console.warn("No token found in sessionStorage.");
+          return;
         }
-      };
-    
-      fetchEmergencyLocs();
-    }, []);
+  
+        // Fetch emergency locations
+        const emergencyRes = await axios.get(`${BASE_URL}/api/emrgLocs/all`, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        // Group emergency locations
+        const grouped = {};
+        emergencyRes.data.locations.forEach((feature) => {
+          const category = feature.properties.category || "Uncategorized";
+          const subCategory = feature.properties.sub_category || "Uncategorized";
+  
+          if (!grouped[category]) {
+            grouped[category] = {};
+          }
+          if (!grouped[category][subCategory]) {
+            grouped[category][subCategory] = [];
+          }
+          grouped[category][subCategory].push(feature);
+        });
+  
+          
+        setLocationsByCategory(grouped);
+        setVisibleCategories(Object.keys(grouped));
+      } catch (err) {
+        console.error("Failed to fetch locations:", err);
+      }
+    };
+  
+    fetchLocsAndQtrs();
+  }, [qtrs]);
 
     const handleCategoryToggle = (category, subCategory, checked) => {
       const key = `${category}:${subCategory}`;
@@ -249,6 +254,32 @@ function App() {
       window.location.reload();
     };
     
+    const handleQtrSelect = (qtr) => {
+      setSelectedQtr(qtr);
+      
+      // Center map on the first coordinate of the polygon
+      if (mapRef.current && qtr.geometry.coordinates[0][0]) {
+        const [lng, lat] = qtr.geometry.coordinates[0][0];
+        mapRef.current.setView([lat, lng], 14);
+      }
+    };
+
+    const handleQtrCheckAll = (checked) => {
+      if (checked) {
+        setCheckedQtrs(qtrs.map(qtr => qtr.properties.neighborhood));
+      } else {
+        setCheckedQtrs([]);
+      }
+    };
+    
+    const handleQtrCheck = (neighborhood, checked) => {
+      if (checked) {
+        setCheckedQtrs(prev => [...prev, neighborhood]);
+      } else {
+        setCheckedQtrs(prev => prev.filter(n => n !== neighborhood));
+      }
+    };
+    
 
     const getHeader = () => {
         return (
@@ -259,6 +290,36 @@ function App() {
               <Nav className="ml-auto align-items-center">
                 {loggedIn ? (
                   <>
+                    <Dropdown>
+                <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
+                  Qtrs
+                </Dropdown.Toggle>
+                <Dropdown.Menu style={{ padding: '10px', minWidth: '200px' }}>
+                  <Form.Check
+                    type="checkbox"
+                    label="Select All"
+                    checked={checkedQtrs.length === qtrs.length}
+                    onChange={(e) => handleQtrCheckAll(e.target.checked)}
+                    className="mb-2"
+                  />
+                  <Dropdown.Divider />
+                  {qtrs.map((qtr, index) => (
+                    <Form.Check
+                      key={index}
+                      type="checkbox"
+                      label={qtr.properties.neighborhood}
+                      checked={checkedQtrs.includes(qtr.properties.neighborhood)}
+                      onChange={(e) => {
+                        handleQtrCheck(qtr.properties.neighborhood, e.target.checked);
+                        if (e.target.checked) {
+                          handleQtrSelect(qtr);
+                        }
+                      }}
+                      className="mb-1"
+                    />
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
                     <Dropdown>
                       <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
                         Responders
@@ -388,287 +449,388 @@ function App() {
   }, []);
 
   return (
-    <Container fluid className="p-0">
-      {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
-      <LoginModal 
-        show={modalStates.login} 
-        onHide={() => setModalStates(prev => ({...prev, login: false}))}
-        onLoginSuccess={handleLoginSuccess}
-      />
-      <RegisterModal 
-        show={modalStates.register} 
-        onHide={() => setModalStates(prev => ({...prev, register: false}))}
-      />
-      <AddIncident 
-        show={modalStates.addIncident}
-        onHide={() => setModalStates(prev => ({...prev, addIncident: false}))}
-        onAdd={(data) => {
-          // Handle adding new incident
-          console.log("New incident data:", data);
-        }}
-      />
+    <>
+      <QtrsComp qtrs={qtrs} setQtrs={setQtrs} />
+      <Container fluid className="p-0">
+        {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
+        <LoginModal 
+          show={modalStates.login} 
+          onHide={() => setModalStates(prev => ({...prev, login: false}))}
+          onLoginSuccess={handleLoginSuccess}
+        />
+        <RegisterModal 
+          show={modalStates.register} 
+          onHide={() => setModalStates(prev => ({...prev, register: false}))}
+        />
+        <AddIncident 
+          show={modalStates.addIncident}
+          onHide={() => setModalStates(prev => ({...prev, addIncident: false}))}
+          onAdd={(data) => {
+            // Handle adding new incident
+            console.log("New incident data:", data);
+          }}
+        />
 
-      <Row className="m-0" style={{ height: "100vh" }}>
-        {/* Left Box */}                
-        <Col xs={4} sm={3} className="p-3" style={{
-          backgroundColor: "#6c757d",
-          color: "white",
-          height: "100vh",
-          overflowY: "auto"
-        }}>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5>Active Incidents</h5>
-            <Button 
-              variant="light" 
-              size="sm"
-              onClick={() => setModalStates(prev => ({...prev, addIncident: true}))}
-            >
-              <i className="fas fa-plus"></i> New Incident
-            </Button>
-          </div>
-          
-          <Accordion>
-            {Object.entries(
-              filteredLocations
-                .filter(loc => loc.properties.category === 'Incidents')
-                .reduce((acc, incident) => {
-                  const subCat = incident.properties.sub_category;
-                  if (!acc[subCat]) acc[subCat] = [];
-                  acc[subCat].push(incident);
-                  return acc;
-                }, {})
-            ).map(([subCategory, incidents], idx) => (
-              <Accordion.Item eventKey={idx.toString()} key={idx} className="mb-2">
-                <Accordion.Header>
-                  <div className="d-flex justify-content-between w-100 align-items-center pe-3">
-                    <span>{subCategory}</span>
-                    <Badge bg="light" text="dark">
-                      {incidents.length}
-                    </Badge>
-                  </div>
-                </Accordion.Header>
-                <Accordion.Body className="p-0">
-                  <Table striped hover variant="dark" responsive className="mb-0">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Time</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {incidents.map((incident, idx) => (
-                        <tr key={idx}>
-                          <td>{incident.properties.loc_name}</td>
-                          <td>
-                            <Badge bg={
-                              incident.properties.loc_status === 'Open' ? 'danger' :
-                              incident.properties.loc_status === 'InProgress' ? 'warning' :
-                              'success'
-                            }>
-                              {incident.properties.loc_status}
-                            </Badge>
-                          </td>
-                          <td>
-                            {format(new Date(incident.properties.incident_start_time), 'HH:mm dd/MM')}
-                          </td>
-                          <td>
+        <Row className="m-0" style={{ height: "100vh" }}>
+          {/* Left Box */}                
+          <Col xs={4} sm={3} className="p-3" style={{
+            backgroundColor: "#6c757d",
+            color: "white",
+            height: "100vh",
+            overflowY: "auto"
+          }}>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5>Active Incidents</h5>
+              <Button 
+                variant="light" 
+                size="sm"
+                onClick={() => setModalStates(prev => ({...prev, addIncident: true}))}
+              >
+                <i className="fas fa-plus"></i> New Incident
+              </Button>
+            </div>
+            
+            <Accordion>
+              {Object.entries(
+                filteredLocations
+                  .filter(loc => loc.properties.category === 'Incidents')
+                  .reduce((acc, incident) => {
+                    const subCat = incident.properties.sub_category;
+                    if (!acc[subCat]) acc[subCat] = [];
+                    acc[subCat].push(incident);
+                    return acc;
+                  }, {})
+              ).map(([subCategory, incidents], idx) => (
+                <Accordion.Item eventKey={idx.toString()} key={idx} className="mb-2">
+                  <Accordion.Header>
+                    <div className="d-flex justify-content-between w-100 align-items-center pe-3">
+                      <span>{subCategory}</span>
+                      <Badge bg="light" text="dark">
+                        {incidents.length}
+                      </Badge>
+                    </div>
+                  </Accordion.Header>
+                  <Accordion.Body className="p-0">
+                    <Table striped hover variant="dark" responsive className="mb-0">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Status</th>
+                          <th>Time</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {incidents.map((incident, idx) => (
+                          <tr key={idx}>
+                            <td>{incident.properties.loc_name}</td>
+                            <td>
+                              <Badge bg={
+                                incident.properties.loc_status === 'Open' ? 'danger' :
+                                incident.properties.loc_status === 'InProgress' ? 'warning' :
+                                'success'
+                              }>
+                                {incident.properties.loc_status}
+                              </Badge>
+                            </td>
+                            <td>
+                              {format(new Date(incident.properties.incident_start_time), 'HH:mm dd/MM')}
+                            </td>
+                            <td>
                             <Button
                               variant="info"
                               size="sm"
                               onClick={() => {
-                                setSelectedIncident(incident);
-                                setShowIncidentDetails(true);
+                                console.log("Selected incident:", incident); // Debug log
+                                if (incident) {
+                                  setSelectedIncident({ ...incident }); // Create a new object to ensure state update
+                                  setShowIncidentDetails(true);
+                                }
                               }}
                             >
                               Details
                             </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </Accordion.Body>
-              </Accordion.Item>
-            ))}
-          </Accordion>
-        </Col>
-  
-        {/* Main Content */}
-        <Col xs={8} sm={9} className="p-0">
-          {/* Header */}
-          {getHeader()}
-  
-          {/* Map Section */}
-          <Row className="m-0" style={{ height: "calc(100vh - 56px)" }}>
-            {/* Subtract the height of the header (56px is the default height of a Bootstrap Navbar) */}
-            <Col className="p-0">
-              <MapContainer
-                center={[location.latitude, location.longitude]}
-                zoom={13}
-                style={{ height: "100%" }}
-                ref={mapRef}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {/* Floating Legend Button */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "10px",
-                    right: "10px",
-                    zIndex: 1000,
-                    backgroundColor: "white",
-                    borderRadius: "5px",
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-                    padding: "5px",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setShowLegend(!showLegend)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </Accordion.Body>
+                </Accordion.Item>
+              ))}
+            </Accordion>
+          </Col>
+    
+          {/* Main Content */}
+          <Col xs={8} sm={9} className="p-0">
+            {/* Header */}
+            {getHeader()}
+    
+            {/* Map Section */}
+            <Row className="m-0" style={{ height: "calc(100vh - 56px)" }}>
+              {/* Subtract the height of the header (56px is the default height of a Bootstrap Navbar) */}
+              <Col className="p-0">
+                <MapContainer
+                  center={[location.latitude, location.longitude]}
+                  zoom={13}
+                  style={{ height: "100%" }}
+                  ref={mapRef}
                 >
-                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
-                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
-                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
-                  <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
-                </div>
-                {showIncidentDetails && selectedIncident && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "50px",
-                      right: "10px",
-                      zIndex: 1001,
-                      backgroundColor: "white",
-                      borderRadius: "5px",
-                      boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-                      padding: "15px",
-                      width: "300px",
-                    }}
-                  >
-                    <div className="d-flex justify-content-between mb-3">
-                      <h5>Incident Details</h5>
-                      <Button 
-                        variant="outline-secondary" 
-                        size="sm"
-                        onClick={() => setShowIncidentDetails(false)}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                    <div>
-                      <p><strong>Name:</strong> {selectedIncident.properties.loc_name}</p>
-                      <p><strong>Address:</strong> {selectedIncident.properties.address}</p>
-                      <p><strong>Description:</strong> {selectedIncident.properties.description}</p>
-                      <p><strong>Status:</strong> {selectedIncident.properties.loc_status}</p>
-                      <p><strong>Start Time:</strong> {
-                        format(new Date(selectedIncident.properties.incident_start_time), 
-                        'HH:mm dd/MM/yyyy')
-                      }</p>
-                      <Button 
-                        variant="primary" 
-                        size="sm" 
-                        className="w-100"
-                        onClick={() => {
-                          // Handle update incident
-                          console.log("Update incident:", selectedIncident.properties.id);
+                  <TileLayer
+                    attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  {qtrs.map((qtr, idx) => {
+                    if (!checkedQtrs.includes(qtr.properties.neighborhood)) return null;
+                    
+                    return (
+                      <Polygon
+                        key={`qtr-${idx}`}
+                        positions={qtr.geometry.coordinates[0].map(coord => [coord[1], coord[0]])}
+                        pathOptions={{
+                          color: 'blue',
+                          fillColor: 'blue',
+                          fillOpacity: 0.2,
                         }}
                       >
-                        Update Status
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {/* Legend Panel */}
-                {showLegend && (
+                        <Popup>
+                          <strong>{qtr.properties.neighborhood}</strong>
+                        </Popup>
+                      </Polygon>
+                    );
+                  })}
+                  {/* Floating Legend Button */}
                   <div
                     style={{
                       position: "absolute",
-                      top: "50px",
+                      top: "10px",
                       right: "10px",
                       zIndex: 1000,
                       backgroundColor: "white",
                       borderRadius: "5px",
                       boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-                      padding: "10px",
-                      maxHeight: "300px",
-                      overflowY: "auto",
+                      padding: "5px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setShowLegend(!showLegend)}
+                  >
+                    <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                    <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                    <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                    <div style={{ width: "25px", height: "3px", backgroundColor: "black", margin: "3px 0" }}></div>
+                  </div>
+                  {showIncidentDetails && selectedIncident && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50px",
+                        right: "10px",
+                        zIndex: 1001,
+                        backgroundColor: "white",
+                        borderRadius: "5px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                        padding: "15px",
+                        width: "300px",
+                        color: "black",
+                      }}
+                    >
+                      <div className="d-flex justify-content-between mb-3">
+                        <h5>Incident Details</h5>
+                        <Button 
+                          variant="outline-secondary" 
+                          size="sm"
+                          onClick={() => {
+                            setShowIncidentDetails(false);
+                            setSelectedIncident(null);
+                          }}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                      {selectedIncident?.properties ? (
+                        <div>
+                          <p><strong>Type:</strong> {selectedIncident.properties.sub_category || 'N/A'}</p>
+                          <p><strong>Name:</strong> {selectedIncident.properties.loc_name || 'N/A'}</p>
+                          <p><strong>Address:</strong> {selectedIncident.properties.address || 'N/A'}</p>
+                          <p><strong>Description:</strong> {selectedIncident.properties.description || 'N/A'}</p>
+                          <p><strong>Status:</strong> {selectedIncident.properties.loc_status || 'N/A'}</p>
+                          {selectedIncident.properties.incident_start_time && (
+                            <p><strong>Started:</strong> {
+                              format(new Date(selectedIncident.properties.incident_start_time), 
+                              'HH:mm dd/MM/yyyy')
+                            }</p>
+                          )}
+                          
+                          {Array.isArray(selectedIncident.properties.equipment) && (
+                            <div className="mt-3">
+                              <p><strong>Equipment:</strong></p>
+                              {selectedIncident.properties.equipment.map((item, idx) => (
+                                <p key={idx} style={{ 
+                                  color: item.qty < item.min_qty ? 'red' : 'inherit',
+                                  marginLeft: '10px',
+                                  marginBottom: '5px'
+                                }}>
+                                  {item.qty} {item.type}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+
+                          {Array.isArray(selectedIncident.properties.vehicles) && (
+                            <div className="mt-3">
+                              <p><strong>Vehicles:</strong></p>
+                              {selectedIncident.properties.vehicles.map((vehicle, idx) => (
+                                <p key={idx} style={{ 
+                                  color: vehicle.qty < vehicle.min_qty ? 'red' : 'inherit',
+                                  marginLeft: '10px',
+                                  marginBottom: '5px'
+                                }}>
+                                  {vehicle.qty} {vehicle.type}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedIncident.properties.available_personal !== undefined && (
+                            <p style={{ 
+                              color: selectedIncident.properties.available_personal < selectedIncident.properties.min_personal ? 'red' : 'inherit'
+                            }}>
+                              <strong>Responders:</strong> {selectedIncident.properties.available_personal}
+                            </p>
+                          )}
+
+                          <Button 
+                            variant="primary" 
+                            size="sm" 
+                            className="w-100 mt-3"
+                            onClick={() => {
+                              console.log("Update incident:", selectedIncident.properties.id);
+                            }}
+                          >
+                            Update Status
+                          </Button>
+                        </div>
+                      ) : (
+                        <p>Loading incident details...</p>
+                      )}
+                    </div>
+                  )}
+                  {/* Legend Panel */}
+                  {showLegend && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50px",
+                        right: "10px",
+                        zIndex: 1000,
+                        backgroundColor: "white",
+                        borderRadius: "5px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                        padding: "10px",
+                        maxHeight: "300px",
+                        overflowY: "auto",
+                      }}
+                    >
+                      <h5>Legend</h5>
+                      <Accordion>
+                        {Object.entries(locationsByCategory).map(([category, subCategories]) => (
+                          <Accordion.Item eventKey={category} key={category}>
+                            <Accordion.Header>{category}</Accordion.Header>
+                            <Accordion.Body>
+                              {Object.entries(subCategories).map(([subCategory, locations]) => (
+                                <Form.Check
+                                  key={subCategory}
+                                  type="checkbox"
+                                  label={`${subCategory} (${locations.length})`}
+                                  checked={visibleCategories.includes(`${category}:${subCategory}`)}
+                                  onChange={(e) => handleCategoryToggle(category, subCategory, e.target.checked)}
+                                />
+                              ))}
+                            </Accordion.Body>
+                          </Accordion.Item>
+                        ))}
+                      </Accordion>
+                    </div>
+                  )}
+                  {filteredLocations.map((feature, idx) => (
+                    <Marker
+                      key={idx}
+                      position={[
+                        feature.geometry.coordinates[1],
+                        feature.geometry.coordinates[0],
+                      ]}
+                      icon={customIcon}
+                    >
+                      <Popup>
+                        <div>
+                          <p><strong>{feature.properties.loc_name}</strong></p>
+                          {feature.properties.photo && (
+                            <img
+                              className={styles.popupImg}
+                              src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
+                              alt={feature.properties.loc_name}
+                            />
+                          )}
+                          <p>{feature.properties.description}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                  {filteredLocations.map((feature, idx) => {                    
+                      return (
+                        <Marker
+                          key={`marker-${idx}`}
+                          position={[
+                            feature.geometry.coordinates[1],
+                            feature.geometry.coordinates[0],
+                          ]}
+                          icon={customIcon}
+                        >
+                          <Popup>
+                            <div>
+                              <p><strong>{feature.properties.loc_name}</strong></p>
+                              {feature.properties.photo && (
+                                <img
+                                  className={styles.popupImg}
+                                  src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
+                                  alt={feature.properties.loc_name}
+                                />
+                              )}
+                              <p>{feature.properties.description}</p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      );
+                    }
+                  )}
+                  {/* Sniper Scope Button */}
+                  <button
+                    className={styles.recenterButton}
+                    onClick={async () => {
+                      const address = await fetchAddress(location.latitude, location.longitude);
+                      if (address) {
+                        alert(`Current location: ${address}`);
+                      } else {
+                        alert("Address not found.");
+                      }
+                      // Recenter the map to the user's current location
+                      const map = mapRef.current;
+                      if (map && location.latitude && location.longitude) {
+                        map.setView([location.latitude, location.longitude], 13); // Center the map on the user's current location
+                      } else {
+                        alert("Address cannot be set on the map.");
+                      }
                     }}
                   >
-                    <h5>Legend</h5>
-                    <Accordion>
-                      {Object.entries(locationsByCategory).map(([category, subCategories]) => (
-                        <Accordion.Item eventKey={category} key={category}>
-                          <Accordion.Header>{category}</Accordion.Header>
-                          <Accordion.Body>
-                            {Object.entries(subCategories).map(([subCategory, locations]) => (
-                              <Form.Check
-                                key={subCategory}
-                                type="checkbox"
-                                label={`${subCategory} (${locations.length})`}
-                                checked={visibleCategories.includes(`${category}:${subCategory}`)}
-                                onChange={(e) => handleCategoryToggle(category, subCategory, e.target.checked)}
-                              />
-                            ))}
-                          </Accordion.Body>
-                        </Accordion.Item>
-                      ))}
-                    </Accordion>
-                  </div>
-                )}
-                {filteredLocations.map((feature, idx) => (
-                  <Marker
-                    key={idx}
-                    position={[
-                      feature.geometry.coordinates[1],
-                      feature.geometry.coordinates[0],
-                    ]}
-                    icon={customIcon}
-                  >
-                    <Popup>
-                      <div>
-                        <p><strong>{feature.properties.loc_name}</strong></p>
-                        {feature.properties.photo && (
-                          <img
-                            className={styles.popupImg}
-                            src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
-                            alt={feature.properties.loc_name}
-                          />
-                        )}
-                        <p>{feature.properties.description}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-                {/* Sniper Scope Button */}
-                <button
-                  className={styles.recenterButton}
-                  onClick={async () => {
-                    const address = await fetchAddress(location.latitude, location.longitude);
-                    if (address) {
-                      alert(`Current location: ${address}`);
-                    } else {
-                      alert("Address not found.");
-                    }
-                    // Recenter the map to the user's current location
-                    const map = mapRef.current;
-                    if (map && location.latitude && location.longitude) {
-                      map.setView([location.latitude, location.longitude], 13); // Center the map on the user's current location
-                    } else {
-                      alert("Address cannot be set on the map.");
-                    }
-                  }}
-                >
-                  <div className={styles.sniperScope}></div>
-                </button>
-              </MapContainer>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
-    </Container>
+                    <div className={styles.sniperScope}></div>
+                  </button>
+                </MapContainer>
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </Container>
+    </>
   );
 }
 

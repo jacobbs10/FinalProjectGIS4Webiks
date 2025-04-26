@@ -9,8 +9,8 @@ import { Outlet, Link, useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Navbar, Nav, Button, Dropdown, Form, Accordion, Table, Badge, FormControl, Container, Row, Col, Modal } from 'react-bootstrap';
 import { format } from 'date-fns';
-import Login from './LoginModal';
-import Register from './RegisterModal';
+import LoginModal from './LoginModal';
+import RegisterModal from './RegisterModal';
 import axios from "axios";  
 import AddIncident from '../components/AddIncident';
 
@@ -49,14 +49,16 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null); 
   const [showAdminMenu, setShowAdminMenu] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [modalStates, setModalStates] = useState({
+    login: false,
+    register: false,
+    addIncident: false
+  });
   const [locationsByCategory, setLocationsByCategory] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
   const [showLegend, setShowLegend] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
-  const [showIncidentDetails, setShowIncidentDetails] = useState(false);
-  const [showAddIncident, setShowAddIncident] = useState(false);
+  const [showIncidentDetails, setShowIncidentDetails] = useState(false);  
   const [activeKeys, setActiveKeys] = useState([]);
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
@@ -236,40 +238,17 @@ function App() {
       localStorage.setItem("visibleCategories", JSON.stringify(updated));
     };
 
-    const LoginModal = ({ show, onHide }) => {
-      const handleLoginSuccess = (user) => {
-        // Update App.js state when login is successful
-        sessionStorage.setItem("loginStatus", "true");
-        sessionStorage.setItem("user", JSON.stringify(user));
-        setLoggedIn(true);
-        setUser(user);
-        onHide(); // Close the modal
-      };
-    
-      return (
-        <Modal show={show} onHide={onHide} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Login</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Login onClose={onHide} onLoginSuccess={handleLoginSuccess} />
-          </Modal.Body>
-        </Modal>
-      );
+    const handleLoginSuccess = (user) => {
+      // Update App.js state when login is successful
+      sessionStorage.setItem("loginStatus", "true");
+      sessionStorage.setItem("user", JSON.stringify(user));
+      setLoggedIn(true);
+      setUser(user);
+      setModalStates(prev => ({...prev, login: false}));
+      setShowLoginPrompt(false);
+      window.location.reload();
     };
     
-    const RegisterModal = ({ show, onHide }) => {    
-      return (
-        <Modal show={show} onHide={onHide} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Register</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Register onClose={onHide} />
-          </Modal.Body>
-        </Modal>
-      );
-    };
 
     const getHeader = () => {
         return (
@@ -308,14 +287,14 @@ function App() {
                     <Button
                       variant="link"
                       className="text-white text-decoration-none mr-3"
-                      onClick={() => setShowLoginModal(true)}
+                      onClick={() => setModalStates(prev => ({...prev, login: true}))}
                     >
                       Login
                     </Button>
                     <Button
                       variant="link"
                       className="text-white text-decoration-none ml-3"
-                      onClick={() => setShowRegisterModal(true)}
+                      onClick={() => setModalStates(prev => ({...prev, register: true}))}
                     >
                       Register
                     </Button>
@@ -411,11 +390,18 @@ function App() {
   return (
     <Container fluid className="p-0">
       {showLoginPrompt && <LoginExpiredPrompt onClose={handleCloseLoginPrompt} />}
-      <LoginModal show={showLoginModal} onHide={() => setShowLoginModal(false)} />
-      <RegisterModal show={showRegisterModal} onHide={() => setShowRegisterModal(false)} />
+      <LoginModal 
+        show={modalStates.login} 
+        onHide={() => setModalStates(prev => ({...prev, login: false}))}
+        onLoginSuccess={handleLoginSuccess}
+      />
+      <RegisterModal 
+        show={modalStates.register} 
+        onHide={() => setModalStates(prev => ({...prev, register: false}))}
+      />
       <AddIncident 
-        show={showAddIncident}
-        onHide={() => setShowAddIncident(false)}
+        show={modalStates.addIncident}
+        onHide={() => setModalStates(prev => ({...prev, addIncident: false}))}
         onAdd={(data) => {
           // Handle adding new incident
           console.log("New incident data:", data);
@@ -435,7 +421,7 @@ function App() {
             <Button 
               variant="light" 
               size="sm"
-              onClick={() => setShowAddIncident(true)}
+              onClick={() => setModalStates(prev => ({...prev, addIncident: true}))}
             >
               <i className="fas fa-plus"></i> New Incident
             </Button>

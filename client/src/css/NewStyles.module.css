@@ -152,3 +152,23 @@
 .modal-dialog {
   transition: transform 0.3s ease-out;
 }
+
+.btnCircle {
+  display: inline-block;
+  width: 10px;   /* Adjust the size of the circle */
+  height: 10px;  /* Adjust the size of the circle */
+  background-color: black;
+  border-radius: 50%;
+  position: fixed;
+  top: 10px;     /* Adjust the distance from the top */
+  right: 10px;   /* Adjust the distance from the right */
+  text-align: center;
+  line-height: 50px; /* Vertically center content inside */
+  color: transparent; /* Hide the text */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 9999;  /* Bring the circle to the front */
+}
+
+.btnCircle:hover {
+  background-color: darkgray;  /* Optional: change color on hover */
+}

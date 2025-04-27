@@ -1,6 +1,6 @@
 import '../css/App.css';
 import { React, useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap  } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap, Circle, CircleMarker  } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import styles from '../css/NewStyles.module.css';
@@ -21,6 +21,7 @@ import { startGenerator } from '../components/IncGenerator';
 import DrawControl from '../components/DrowControl';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
+import L from 'leaflet';
 
 const LoginExpiredPrompt = ({ onClose }) => {
   return (
@@ -76,9 +77,29 @@ function App() {
   const [checkedQtrs, setCheckedQtrs] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [areaSelectedIncidents, setAreaSelectedIncidents] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
+
+  const stationIcons = {
+    Fire: new L.Icon({
+      iconUrl: require('../icons/icon_fire_station_1.png'),
+      iconSize: [25, 25],
+    }),
+    Police: new L.Icon({
+      iconUrl: require('../icons/icon_police_station_1.png'),
+      iconSize: [25, 25],
+    }),
+    Medical: new L.Icon({
+      iconUrl: require('../icons/Magen_David_Adom.svg.png'),
+      iconSize: [25, 25],
+    }),
+    ArmyRescue: new L.Icon({
+      iconUrl: require('../icons/icon_army_tent.png'),
+      iconSize: [25, 25],
+    }),
+  };
 
   
   // You can call this on component mount if you want location immediately
@@ -154,10 +175,29 @@ function App() {
       try {
         const parsedUser = JSON.parse(raw);
         setUser(parsedUser); // Store the user data in state
+        // Initialize all categories as visible
+        const allCategories = Object.entries(locationsByCategory).flatMap(([category, subCategories]) =>
+          Object.keys(subCategories).map(subCategory => `${category}:${subCategory}`)
+        );
+        setVisibleCategories(allCategories);
+        localStorage.setItem("visibleCategories", JSON.stringify(allCategories));
       } catch (error) {
         console.error("Failed to parse user data:", error);
       }      
-    }, []);
+    }, [locationsByCategory]);
+
+    useEffect(() => {
+  const savedCategories = localStorage.getItem("visibleCategories");
+  if (savedCategories) {
+    setVisibleCategories(JSON.parse(savedCategories));
+  }
+}, []);
+
+useEffect(() => {
+  if (visibleCategories.length > 0) {
+    localStorage.setItem("visibleCategories", JSON.stringify(visibleCategories));
+  }
+}, [visibleCategories]);
 
   // Check token validity on component mount and periodically
   useEffect(() => {
@@ -548,6 +588,24 @@ function App() {
     return [...new Set([...visibleByCategory, ...areaSelectedIncidents])];
   }, [locationsByCategory, visibleCategories, areaSelectedIncidents]);
 
+  const getStationIcon = (subCategory) => {
+    return stationIcons[subCategory] || stationIcons.Default;
+  };
+  
+  // Function to get the style for incidents based on their status
+  const getIncidentStyle = (status) => {
+    switch (status) {
+      case 'Open':
+        return { color: 'red', fillColor: 'red', fillOpacity: 0.6, radius: 10, className: 'beaming-circle' };
+      case 'InProgress':
+        return { color: 'orange', fillColor: 'orange', fillOpacity: 0.6, radius: 10, className: 'beaming-circle' };
+      case 'Closed':
+        return { color: 'green', fillColor: 'green', fillOpacity: 0.6, radius: 10 };
+      default:
+        return { color: 'gray', fillColor: 'gray', fillOpacity: 0.6, radius: 10 };
+    }
+  };
+
   return (
     <>
       <QtrsComp qtrs={qtrs} setQtrs={setQtrs} />
@@ -646,6 +704,7 @@ function App() {
               {Object.entries(
                 filteredLocations
                   .filter(loc => loc.properties.category === 'Incidents')
+                  .sort((a, b) => new Date(b.properties.incident_start_time) - new Date(a.properties.incident_start_time)) // Sort descending
                   .reduce((acc, incident) => {
                     const subCat = incident.properties.sub_category;
                     if (!acc[subCat]) acc[subCat] = [];
@@ -940,57 +999,121 @@ function App() {
                       </Accordion>
                     </div>
                   )}
-                  {filteredLocations.map((feature, idx) => (
-                    <Marker
-                      key={idx}
-                      position={[
-                        feature.geometry.coordinates[1],
-                        feature.geometry.coordinates[0],
-                      ]}
-                      icon={customIcon}
-                    >
-                      <Popup>
-                        <div>
-                          <p><strong>{feature.properties.loc_name}</strong></p>
-                          {feature.properties.photo && (
-                            <img
-                              className={styles.popupImg}
-                              src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
-                              alt={feature.properties.loc_name}
-                            />
+                  // Render markers for incidents and stations
+                  {filteredLocations.map((feature, idx) => {
+                    const { category, sub_category, loc_status } = feature.properties;
+
+                    // Render incidents as CircleMarkers
+                    if (category === 'Incidents') {
+                      const style = getIncidentStyle(loc_status);
+                      return (
+                        <CircleMarker
+                          key={idx}
+                          center={[
+                            feature.geometry.coordinates[1],
+                            feature.geometry.coordinates[0],
+                          ]}
+                          pathOptions={style}
+                          eventHandlers={{
+                            click: () => {
+                              setSelectedLocation(feature);
+                            },
+                          }}
+                        >
+                          {selectedLocation && (
+                            <Popup>
+                              <div 
+                                style={{
+                                  position: "absolute",
+                                  top: "50px",
+                                  right: "10px",
+                                  zIndex: 1001,
+                                  backgroundColor: "white",
+                                  borderRadius: "5px",
+                                  boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                                  padding: "15px",
+                                  width: "300px",
+                                  color: "black",
+                                  maxHeight: "calc(100vh - 100px)",
+                                  overflowY: "auto",
+                                }}
+                              >
+                                <div className="d-flex justify-content-between mb-3">
+                                  <h5 style={{ margin: 0 }}>{selectedLocation.properties.loc_name}</h5>
+                                  <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    onClick={() => setSelectedLocation(null)} // Close the popup
+                                  >
+                                    ×
+                                  </Button>
+                                </div>                          
+                                  <p><strong>Description:</strong> {selectedLocation.properties.description}</p>
+                                  <p><strong>Address:</strong> {selectedLocation.properties.address}</p>
+                                  <p><strong>Status:</strong> {selectedLocation.properties.loc_sttus}</p>
+                              </div>
+                            </Popup>
                           )}
-                          <p>{feature.properties.description}</p>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                  {filteredLocations.map((feature, idx) => {                    
+                        </CircleMarker>
+                      );
+                    }
+
+                    // Render stations as Markers with custom icons
+                    if (category === 'Stations') {
+                      const icon = getStationIcon(sub_category);
                       return (
                         <Marker
-                          key={`marker-${idx}`}
+                          key={idx}
                           position={[
                             feature.geometry.coordinates[1],
                             feature.geometry.coordinates[0],
                           ]}
-                          icon={customIcon}
+                          icon={icon}
+                          eventHandlers={{
+                            click: () => {
+                              setSelectedLocation(feature);
+                            },
+                          }}
                         >
-                          <Popup>
-                            <div>
-                              <p><strong>{feature.properties.loc_name}</strong></p>
-                              {feature.properties.photo && (
-                                <img
-                                  className={styles.popupImg}
-                                  src={`${process.env.PUBLIC_URL}/images/${feature.properties.photo}`}
-                                  alt={feature.properties.loc_name}
-                                />
-                              )}
-                              <p>{feature.properties.description}</p>
-                            </div>
-                          </Popup>
+                          {selectedLocation && (
+                              <div 
+                                style={{
+                                  position: "absolute",
+                                  top: "50px",
+                                  right: "10px",
+                                  zIndex: 1001,
+                                  backgroundColor: "white",
+                                  borderRadius: "5px",
+                                  boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                                  padding: "15px",
+                                  width: "300px",
+                                  color: "black",
+                                  maxHeight: "calc(100vh - 100px)",
+                                  overflowY: "auto",
+                                }}
+                              >
+                                <div className="d-flex justify-content-between mb-3">
+                                  <h5 style={{ margin: 0 }}>{selectedLocation.properties.loc_name}</h5>
+                                  <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    onClick={() => setSelectedLocation(null)} // Close the popup
+                                  >
+                                    ×
+                                  </Button>
+                                </div>                          
+                                  <p><strong>Description:</strong> {selectedLocation.properties.description}</p>
+                                  <p><strong>Address:</strong> {selectedLocation.properties.address}</p>
+                                  <p><strong>Email:</strong> {selectedLocation.properties.email}</p>
+                                  <p><strong>Phone:</strong> {selectedLocation.properties.phone}</p>                          
+                              </div>
+                      )}
                         </Marker>
                       );
                     }
-                  )}
+
+                    return null;
+                  })}
                   {/* Sniper Scope Button */}
                   <button
                     className={styles.recenterButton}
@@ -1012,6 +1135,18 @@ function App() {
                   >
                     <div className={styles.sniperScope}></div>
                   </button>
+                  {/* Render circle around selected marker */}
+                  {selectedLocation && (
+                    <Circle
+                      center={[selectedLocation.geometry.coordinates[1], selectedLocation.geometry.coordinates[0]]}
+                      radius={400} // radius in meters (adjust if you want)
+                      pathOptions={{
+                        color: 'blue',
+                        fillColor: 'blue',
+                        fillOpacity: 0.4,
+                      }}
+                    />
+                  )}
                 </MapContainer>
               </Col>
             </Row>

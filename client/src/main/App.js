@@ -17,6 +17,7 @@ import UpdateIncident from '../components/UpdateIncident';
 import QtrsComp from '../components/QtrsComp'
 import CreateIncidentModal from '../components/CreateIncidentModal';
 import AutoGeneratorModal from '../components/AutoGeneratorModal';
+import AddressSearchModal from '../components/AddressSearchModal';
 import { startGenerator } from '../components/IncGenerator';
 import DrawControl from '../components/DrowControl';
 import 'leaflet/dist/leaflet.css';
@@ -64,7 +65,8 @@ function App() {
     updateIncident: false,
     resources: false,
     autoGenerator: false,
-    createIncident: false
+    createIncident: false,
+    addressSearch: false
   });
   const [locationsByCategory, setLocationsByCategory] = useState({});
   const [visibleCategories, setVisibleCategories] = useState([]);
@@ -77,7 +79,10 @@ function App() {
   const [checkedQtrs, setCheckedQtrs] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [areaSelectedIncidents, setAreaSelectedIncidents] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);  
+  const [areaSelected, setAreaSelected] = useState(false);
+  const [selectedPolygons, setSelectedPolygons] = useState([]);
+  const [rangeCircle, setRangeCircle] = useState(null); // For the range circle    
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
@@ -92,7 +97,7 @@ function App() {
       iconSize: [25, 25],
     }),
     Medical: new L.Icon({
-      iconUrl: require('../icons/Magen_David_Adom.svg.png'),
+      iconUrl: require('../icons/icon_medical_hospital_4.png'),
       iconSize: [25, 25],
     }),
     ArmyRescue: new L.Icon({
@@ -466,14 +471,20 @@ useEffect(() => {
                     </Button>
                     <Button
                       variant="link"
+                      className="text-white text-decoration-none mr-3"
+                      onClick={() => setModalStates(prev => ({...prev, addressSearch: true}))}
+                    >
+                      Search Address
+                    </Button>
+                    <Button
+                      variant="link"
                       onClick={handleLogout}
                       className="text-white text-decoration-none mr-3"
                     >
                       Logout
                     </Button>
                     {user?.role === "Admin" && (
-                      <Link to="/admin" className="text-white text-decoration-none">
-                        Admin
+                      <Link to="/admin" className={styles.btnCircle}>                        
                       </Link>
                     )}
                   </>
@@ -591,6 +602,17 @@ useEffect(() => {
   const getStationIcon = (subCategory) => {
     return stationIcons[subCategory] || stationIcons.Default;
   };
+
+  const handleAreaSelection = (location) => {
+    
+    setAreaSelected(true);
+
+    const matchingQtrs = qtrs.filter(qtr => 
+      location.properties.qtrs_list.includes(qtr.properties.id)
+    );
+  
+    setSelectedPolygons(matchingQtrs); 
+  };
   
   // Function to get the style for incidents based on their status
   const getIncidentStyle = (status) => {
@@ -660,6 +682,10 @@ useEffect(() => {
         <CreateIncidentModal
           show={modalStates.createIncident}
           onHide={() => setModalStates(prev => ({...prev, createIncident: false}))}
+        />
+        <AddressSearchModal
+          show={modalStates.addressSearch}
+          onHide={() => setModalStates(prev => ({...prev, addressSearch: false}))}
         />
         <AutoGeneratorModal
           show={modalStates.autoGenerator}
@@ -815,6 +841,17 @@ useEffect(() => {
                       </Polygon>
                     );
                   })}
+                  {rangeCircle && (
+                    <Circle
+                        center={rangeCircle.center}
+                        radius={rangeCircle.radius}
+                        pathOptions={{
+                        color: "red", // Circle border color
+                        fillColor: "red", // Circle fill color
+                        fillOpacity: 0.2, // Translucent fill
+                        }}
+                    />
+                    )} 
                   {/* Floating Legend Button */}
                   <div
                     style={{
@@ -1017,6 +1054,7 @@ useEffect(() => {
                           eventHandlers={{
                             click: () => {
                               setSelectedLocation(feature);
+                              handleAreaSelection(feature);
                             },
                           }}
                         >
@@ -1043,7 +1081,12 @@ useEffect(() => {
                                   <Button
                                     variant="outline-secondary"
                                     size="sm"
-                                    onClick={() => setSelectedLocation(null)} // Close the popup
+                                    onClick={() => {
+                                      setSelectedLocation(null);
+                                      setAreaSelected(null); // Close the popup
+                                      setSelectedPolygons([]); // Clear selected polygons
+                                    }
+                                  }
                                   >
                                     ×
                                   </Button>
@@ -1072,6 +1115,7 @@ useEffect(() => {
                           eventHandlers={{
                             click: () => {
                               setSelectedLocation(feature);
+                              handleAreaSelection(feature);
                             },
                           }}
                         >
@@ -1097,7 +1141,12 @@ useEffect(() => {
                                   <Button
                                     variant="outline-secondary"
                                     size="sm"
-                                    onClick={() => setSelectedLocation(null)} // Close the popup
+                                    onClick={() => {
+                                      setSelectedLocation(null);
+                                      setAreaSelected(null); // Close the popup
+                                      setSelectedPolygons([]); // Clear selected polygons
+                                    }
+                                   } // Close the popup
                                   >
                                     ×
                                   </Button>
@@ -1114,6 +1163,22 @@ useEffect(() => {
 
                     return null;
                   })}
+                  {selectedPolygons.map((qtr, idx) => (
+                    <Polygon
+                      key={`qtr-${idx}`}
+                      positions={qtr.geometry.coordinates[0].map(coord => [coord[1], coord[0]])}
+                      pathOptions={{
+                        color: 'green',
+                        fillColor: 'green',
+                        fillOpacity: 0.2,
+                      }}
+                    >
+                      <Popup>
+                        <p><strong>{qtr.properties.neighborhood}</strong></p>
+                        <p><strong>{qtr.properties.id}</strong></p>
+                      </Popup>
+                    </Polygon>
+                  ))}
                   {/* Sniper Scope Button */}
                   <button
                     className={styles.recenterButton}
@@ -1146,7 +1211,7 @@ useEffect(() => {
                         fillOpacity: 0.4,
                       }}
                     />
-                  )}
+                  )}                  
                 </MapContainer>
               </Col>
             </Row>

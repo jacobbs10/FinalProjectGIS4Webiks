@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-// import FixedHeader from "../components/FixedHeader"; HIDDEN 1of2
-import styles from "../css/MainStyles.module.css";
+import { Form, Button, Table, Row, Col, InputGroup } from "react-bootstrap"; // 👈 NEW
+import styles from "../css/MainStyles.module.css"; // You can still keep your custom styles if needed.
+import '../css/Users.css';
 
 const AdminUsers = () => {
   const [searchEmail, setSearchEmail] = useState("");
@@ -69,28 +70,6 @@ const AdminUsers = () => {
     fetchUsers();
   }, []);
   
-
-/*   useEffect(() => {
-    if (!sortBy) {
-      setUsers([...allUsers]);
-      return;
-    }
-  
-    const sorted = [...allUsers].sort((a, b) => {
-      const valA = a[sortBy];
-      const valB = b[sortBy];
-  
-      if (sortBy === "user_updated" || sortBy === "user_modified" || sortBy === "updatedAt") {
-        return new Date(valB) - new Date(valA); // Newest first
-      }
-  
-      return valA?.toString().localeCompare(valB?.toString());
-    });
-  
-    setUsers(sorted);
-  }, [sortBy, allUsers]); */
-
-
   useEffect(() => {
     if (!sortBy) {
       setUsers([...allUsers]);
@@ -124,12 +103,6 @@ const AdminUsers = () => {
   }, [sortBy, allUsers]);
   
   
-  
-
-  
-  
-
-
   const validateNewUser = () => {
     const { username, password, user_firstname, user_lastname, user_cellphone, user_email } = newUser;
     if (!username || !password || !user_firstname || !user_lastname || !user_cellphone || !user_email) {
@@ -206,9 +179,6 @@ const AdminUsers = () => {
     }
   };
   
-
-
-
   const handleEditChange = (e) => {
     const { name, value, type, checked } = e.target;
     const cleanedValue = name === "user_cellphone" ? value.replace(/[^\d]/g, "") : value;
@@ -274,226 +244,279 @@ const AdminUsers = () => {
     }
   };
   
-
   if (!authorized) return null;
 
   return (
-    <div>
-      {/* <FixedHeader title="Admin User Management" HIDDEN 2of2 /> */}
-      <div className={styles.adminPanel}>
+    <div className="container mt-4">
+      <h2>Manage All Users</h2>
+      <br />
 
+      <Row className="mb-3">
+        <Col md={3}>
+          <InputGroup>
+            <Form.Control
+              type="text"
+              placeholder="Search by any field"
+              value={searchEmail}
+              onChange={(e) => setSearchEmail(e.target.value)}
+            />
+            <Button
+              onClick={handleSearch}
+              disabled={searchEmail.trim() === ""}
+            >
+              Search
+            </Button>
+            <Button onClick={handleReset}>
+              Clear
+            </Button>
+          </InputGroup>
+        </Col>
 
+        <Col md={2}>
+          <Form.Select
+            value={pageLimit}
+            onChange={(e) => setPageLimit(Number(e.target.value))}
+          >
+            <option value={10}>Page Limit: 10</option>
+            <option value={20}>Page Limit: 20</option>
+            <option value={50}>Page Limit: 50</option>
+          </Form.Select>
+        </Col>
 
-        <h2>Manage All Users</h2> <br /> <br />
+        <Col md={2}>
+          <Form.Select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="">Sort By</option>
+            <option value="role">User Type</option>
+            <option value="user_created">Created Date</option>
+            <option value="user_modified">Modified Date</option>
+            <option value="user_status">Status</option>
+          </Form.Select>
+        </Col>
+      </Row>
 
+      <Table striped bordered hover responsive className="text-center">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Password</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Cellphone</th>
+            <th>Email</th>
+            <th>User Type</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Modified</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
 
-        <div className={styles.toolbar}>
-  <input
-    type="text"
-    placeholder="Search by any field"
-    value={searchEmail}
-    onChange={(e) => setSearchEmail(e.target.value)}
-  />
-  <button
-    onClick={handleSearch}
-    disabled={searchEmail.trim() === ""}
-  >
-    Search
-  </button>
+        <tbody>
+          {/* New User Row */}
+          <tr>
+            <td>
+              <Form.Control
+                name="username"
+                value={newUser.username}
+                onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+              />
+            </td>
+            <td>
+              <Form.Control
+                name="password"
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              />
+            </td>
+            <td>
+              <Form.Control
+                name="user_firstname"
+                value={newUser.user_firstname}
+                onChange={(e) => setNewUser({ ...newUser, user_firstname: e.target.value })}
+              />
+            </td>
+            <td>
+              <Form.Control
+                name="user_lastname"
+                value={newUser.user_lastname}
+                onChange={(e) => setNewUser({ ...newUser, user_lastname: e.target.value })}
+              />
+            </td>
+            <td>
+              <Form.Control
+                name="user_cellphone"
+                value={newUser.user_cellphone}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, user_cellphone: e.target.value.replace(/[^\d]/g, "") })
+                }
+              />
+            </td>
+            <td>
+              <Form.Control
+                name="user_email"
+                value={newUser.user_email}
+                onChange={(e) => setNewUser({ ...newUser, user_email: e.target.value })}
+              />
+            </td>
+            <td>
+              <Form.Select
+                name="user_type"
+                value={newUser.user_type || "Viewer"}
+                onChange={(e) => setNewUser({ ...newUser, user_type: e.target.value })}
+              >
+                <option value="Viewer">Viewer</option>
+                <option value="Confidential">Confidential</option>
+              </Form.Select>
+            </td>
+            <td>
+              <Form.Check
+                type="checkbox"
+                name="user_status"
+                checked={newUser.user_status}
+                onChange={(e) => setNewUser({ ...newUser, user_status: e.target.checked })}
+              />
+            </td>
+            <td>–</td>
+            <td>–</td>
+            <td>
+              <Button onClick={handleAddUser}>
+                Add
+              </Button>
+            </td>
+          </tr>
 
-  <button onClick={handleReset}>Clear</button>
-
-  <select
-    value={pageLimit}
-    onChange={(e) => setPageLimit(Number(e.target.value))}
-  >
-    <option value={10}>Page Limit: 10</option>
-    <option value={20}>Page Limit: 20</option>
-    <option value={50}>Page Limit: 50</option>
-  </select>
-
-  <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-    <option value="">Sort By</option>
-    <option value="role">User Type</option>
-    <option value="user_created">Created Date</option>
-    <option value="user_modified">Modified Date</option>
-    <option value="user_status">Status</option>
-  </select>
-
-</div>
-
-
-
-
-<table className={styles.userTable}>
-  <thead>
-    <tr>
-      <th>Username</th>
-      <th>Password</th>
-      <th>First Name</th>
-      <th>Last Name</th>
-      <th>Cellphone</th>
-      <th>Email</th>
-      <th>User Type</th>
-      <th>Status</th>
-      <th>Created</th>
-      <th>Modified</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  <tr>
-  <td>
-    <input
-      name="username"
-      value={newUser.username}
-      onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-    />
-  </td>
-  <td>
-    <input
-      name="password"
-      type="password"
-      value={newUser.password}
-      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-    />
-  </td>
-  <td>
-    <input
-      name="user_firstname"
-      value={newUser.user_firstname}
-      onChange={(e) => setNewUser({ ...newUser, user_firstname: e.target.value })}
-    />
-  </td>
-  <td>
-    <input
-      name="user_lastname"
-      value={newUser.user_lastname}
-      onChange={(e) => setNewUser({ ...newUser, user_lastname: e.target.value })}
-    />
-  </td>
-  <td>
-    <input
-      name="user_cellphone"
-      value={newUser.user_cellphone}
-      onChange={(e) =>
-        setNewUser({ ...newUser, user_cellphone: e.target.value.replace(/[^\d]/g, "") })
-      }
-    />
-  </td>
-  <td>
-    <input
-      name="user_email"
-      value={newUser.user_email}
-      onChange={(e) => setNewUser({ ...newUser, user_email: e.target.value })}
-    />
-  </td>
-  
-  <td>
-  <select
-    name="user_type"
-    value={newUser.user_type || "Viewer"}
-    onChange={(e) => setNewUser({ ...newUser, user_type: e.target.value })}
-  >
-    <option value="Viewer">Viewer</option>
-    <option value="Confidential">Confidential</option>
-  </select>
-</td>
-
-  <td>
-    <input
-      type="checkbox"
-      name="user_status"
-      checked={newUser.user_status}
-      onChange={(e) =>
-        setNewUser({ ...newUser, user_status: e.target.checked })
-      }
-    />
-  </td>
-  <td>–</td>
-  <td>–</td>
-  <td>
-    <button className={styles.addButton} onClick={handleAddUser}>Add</button>
-  </td>
-</tr>
-
-
-     
-{users.map((user) => (
-  <tr key={user._id}>
-    {editingUserId === user._id ? (
-      <>
-        <td><input name="username" value={editedUser.username} onChange={handleEditChange} /></td>
-        <td><input name="password" type="password" value={editedUser.password} onChange={handleEditChange} /></td>
-        <td><input name="user_firstname" value={editedUser.user_firstname} onChange={handleEditChange} /></td>
-        <td><input name="user_lastname" value={editedUser.user_lastname} onChange={handleEditChange} /></td>
-        <td><input name="user_cellphone" value={editedUser.user_cellphone} onChange={handleEditChange} /></td>
-        <td><input name="user_email" value={editedUser.user_email} onChange={handleEditChange} /></td>
-        <td>
-  <select
-    name="user_type"
-    value={editedUser.user_type || editedUser.role || "Viewer"}
-    onChange={handleEditChange}
-  >
-    <option value="Viewer">Viewer</option>
-    <option value="Confidential">Confidential</option>
-  </select>
-</td>
-
-
-        <td><input type="checkbox" name="user_status" checked={editedUser.user_status} onChange={(e) => setEditedUser({...editedUser, user_status: e.target.checked})} /></td>
-        <td>{editedUser.user_created}</td>
-        <td>{editedUser.user_modified}</td>
-        <td>
-          <button onClick={() => handleSave(user._id)} className={styles.saveButton}>Save</button>
-          <button onClick={handleCancel} className={styles.cancelButton}>Cancel</button>
-        </td>
-      </>
-    ) : (
-      <>
-        <td>{user.username}</td>
-        <td>••••••</td>
-        <td>{user.user_firstname}</td>
-        <td>{user.user_lastname}</td>
-        <td>{user.user_cellphone}</td>
-        <td>{user.user_email}</td>
-        <td>{user.role || user.user_type || ''}</td>
-        <td>{user.user_status ? "Active" : "Inactive"}</td>
-        <td>{user.user_created
-  ? user.user_created
-  : user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString("en-GB")
-    : ''}</td>
-
-<td>{user.user_modified
-  ? user.user_modified
-  : user.updatedAt
-    ? new Date(user.updatedAt).toLocaleDateString("en-GB")
-    : ''}</td>
-
-<td>
-  {user.role !== "Admin" ? (
-    <>
-      <button onClick={() => handleEditClick(user)} className={styles.editButton}>
-        Edit
-      </button>
-      <button onClick={() => handleDelete(user._id)} className={styles.deleteButton}>
-        Delete
-      </button>
-    </>
-  ) : (
-    <span style={{ color: "#888", fontStyle: "italic" }}>🔒 Admin</span>
-  )}
-</td>
-
-      </>
-    )}
-  </tr>
-))}
-  </tbody>
-</table>
-
-      </div>
+          {/* Users List */}
+          {users.map((user) => (
+            <tr key={user._id}>
+              {editingUserId === user._id ? (
+                <>
+                  <td>
+                    <Form.Control
+                      name="username"
+                      value={editedUser.username}
+                      onChange={handleEditChange}
+                    />
+                  </td>
+                  <td>
+                    <Form.Control
+                      name="password"
+                      type="password"
+                      value={editedUser.password}
+                      onChange={handleEditChange}
+                    />
+                  </td>
+                  <td>
+                    <Form.Control
+                      name="user_firstname"
+                      value={editedUser.user_firstname}
+                      onChange={handleEditChange}
+                    />
+                  </td>
+                  <td>
+                    <Form.Control
+                      name="user_lastname"
+                      value={editedUser.user_lastname}
+                      onChange={handleEditChange}
+                    />
+                  </td>
+                  <td>
+                    <Form.Control
+                      name="user_cellphone"
+                      value={editedUser.user_cellphone}
+                      onChange={handleEditChange}
+                    />
+                  </td>
+                  <td>
+                    <Form.Control
+                      name="user_email"
+                      value={editedUser.user_email}
+                      onChange={handleEditChange}
+                    />
+                  </td>
+                  <td>
+                    <Form.Select
+                      name="user_type"
+                      value={editedUser.user_type || editedUser.role || "Viewer"}
+                      onChange={handleEditChange}
+                    >
+                      <option value="Viewer">Viewer</option>
+                      <option value="Confidential">Confidential</option>
+                    </Form.Select>
+                  </td>
+                  <td>
+                    <Form.Check
+                      type="checkbox"
+                      name="user_status"
+                      checked={editedUser.user_status}
+                      onChange={(e) =>
+                        setEditedUser({ ...editedUser, user_status: e.target.checked })
+                      }
+                    />
+                  </td>
+                  <td>{editedUser.user_created}</td>
+                  <td>{editedUser.user_modified}</td>
+                  <td>
+                    <Button onClick={handleSave}>
+                      Save
+                    </Button>{" "}
+                    <Button onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                  </td>
+                </>
+              ) : (
+                <>
+                  <td>{user.username}</td>
+                  <td>••••••</td>
+                  <td>{user.user_firstname}</td>
+                  <td>{user.user_lastname}</td>
+                  <td>{user.user_cellphone}</td>
+                  <td>{user.user_email}</td>
+                  <td>{user.role || user.user_type || ""}</td>
+                  <td>{user.user_status ? "Active" : "Inactive"}</td>
+                  <td>
+                    {user.user_created
+                      ? user.user_created
+                      : user.createdAt
+                      ? new Date(user.createdAt).toLocaleDateString("en-GB")
+                      : ""}
+                  </td>
+                  <td>
+                    {user.user_modified
+                      ? user.user_modified
+                      : user.updatedAt
+                      ? new Date(user.updatedAt).toLocaleDateString("en-GB")
+                      : ""}
+                  </td>
+                  <td>
+                    {user.role !== "Admin" ? (
+                      <>
+                        <Button
+                          onClick={() => handleEditClick(user)}
+                          className="me-2"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(user._id)}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    ) : (
+                      <span style={{ color: "#888", fontStyle: "italic" }}>🔒 Admin</span>
+                    )}
+                  </td>
+                </>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
     </div>
   );
 };

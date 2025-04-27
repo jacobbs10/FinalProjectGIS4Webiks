@@ -478,6 +478,13 @@ useEffect(() => {
                     </Button>
                     <Button
                       variant="link"
+                      className="text-white text-decoration-none mr-3"
+                      onClick={() => setRangeCircle(null)}
+                    >
+                      Clear Circle
+                    </Button>                    
+                    <Button
+                      variant="link"
                       onClick={handleLogout}
                       className="text-white text-decoration-none mr-3"
                     >
@@ -686,6 +693,7 @@ useEffect(() => {
         <AddressSearchModal
           show={modalStates.addressSearch}
           onHide={() => setModalStates(prev => ({...prev, addressSearch: false}))}
+          setRangeCircle={setRangeCircle}
         />
         <AutoGeneratorModal
           show={modalStates.autoGenerator}
@@ -845,9 +853,10 @@ useEffect(() => {
                     <Circle
                         center={rangeCircle.center}
                         radius={rangeCircle.radius}
+                        interactive={false}
                         pathOptions={{
-                        color: "red", // Circle border color
-                        fillColor: "red", // Circle fill color
+                        color: "yellow", // Circle border color
+                        fillColor: "yellow", // Circle fill color
                         fillOpacity: 0.2, // Translucent fill
                         }}
                     />

@@ -5,11 +5,10 @@ import axios from "axios";
 import { Circle } from 'react-leaflet'; // Import Circle from react-leaflet
 import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS 
 
-const AddressSearchModal = ({ show, onHide }) => {
+const AddressSearchModal = ({ show, onHide, setRangeCircle }) => {
   const [address, setAddress] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [coordinates, setCoordinates] = useState(null);
-  const [rangeCircle, setRangeCircle] = useState(null); // For the range circle
   const [locations, setLocations] = useState([]); // For the locations in range
   const [token, setToken] = useState(sessionStorage.getItem("token") || null);
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
@@ -49,33 +48,32 @@ const AddressSearchModal = ({ show, onHide }) => {
 
   // Handle address input change
   const handleCompleteAddress = async (address) => {
-    //const address = e.target.value;
     if (address) {
       try {
         const coords = await geocodeAddress(address);
         setCoordinates(coords);
+        const range = 1000; // Set a default range in meters (1 km)
+        setRangeCircle({
+          center: [coords.lat, coords.lng],
+          radius: range,
+        });
+        const locations = await axios.post(`${BASE_URL}/api/locs/range`, {
+          coordinates: [coords.lng, coords.lat], // ✅ Correct here
+          range: range
+        }, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        const features = locations.data.locations;
+        setLocations(features);
       } catch (err) {
         alert("Failed to find address.");
       }
     }
-    setRangeCircle(null);
     setAddress(address);
     fetchSuggestions(address);
-    const range = 1000; // Set a default range in meters (1 km)
-    setRangeCircle({
-        center: [coordinates.lat, coordinates.lng],
-        radius: range,
-      });
-      const locations = await axios.post(`${BASE_URL}/api/locs/range`, {coordinates: [coordinates.lng, coordinates.lat], range: range}, {
-        headers: {
-          Authorization: `${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-      //console.log("Locations in range:", locations.data);          
-      const features = locations.data.locations;
-      setLocations(features);
-
   };
 
    // Handle address input change
@@ -96,15 +94,13 @@ const AddressSearchModal = ({ show, onHide }) => {
   };
 
   const handleAddressSubmit = (event) => {
-    event.preventDefault();
-    setRangeCircle(null);
-    // Apply your logic here with the address, for example:
+    event.preventDefault();    
     console.log("Address Submitted:", address);
     onHide();  // Optionally close the modal after submission
   };
 
   return (
-    <Modal show={show} onHide={onHide} setRangeCircle={setRangeCircle}>
+    <Modal show={show} onHide={onHide}>
         <Modal.Header closeButton>
             <Modal.Title>Address Search</Modal.Title>
         </Modal.Header>
@@ -117,11 +113,13 @@ const AddressSearchModal = ({ show, onHide }) => {
                 placeholder="Enter address"
                 value={address}
                 onChange={handleInputChange}
-                onKeyDown={(e) => {
+                onKeyDown={async (e) => {
                     if (e.key === 'Enter') {
-                    handleCompleteAddress(address);  // Trigger the submit logic when Enter is pressed
+                      e.preventDefault(); // Prevent the form from submitting
+                      await handleCompleteAddress(address); // Wait until address is handled
+                      onHide(); // Now close the modal
                     }
-                }}
+                  }}
                 />
             </Form.Group>
             </Form>

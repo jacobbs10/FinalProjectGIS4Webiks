@@ -1,0 +1,40 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "jest",
+    "build": "ncc build src/index.js -o dist",
+    "start": "node dist/index.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "<rootDir>/server"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.2",
+    "multer": "^1.4.5-lts.2"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3",
+    "jest": "^29.7.0",
+    "supertest": "^7.1.0"
+  }
+}

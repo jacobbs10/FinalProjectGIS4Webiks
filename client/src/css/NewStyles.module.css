@@ -1,0 +1,174 @@
+/*------------------------------------
+   Override Bootstrap Navbar Styles
+------------------------------------*/
+.navbar {
+    background-color: #6c757d !important; /* Custom grey color */
+    padding: 0 !important; /* Remove extra padding */
+    border: none; /* Remove any borders */
+    box-shadow: none; /* Remove shadow */
+  }
+  
+  .navbar .navbar-brand,
+  .navbar .nav-link,
+  .navbar .btn {
+    color: white !important; /* Ensure all text is white */
+    background-color: transparent !important; /* Remove background color */
+    padding: 10px 15px; /* Add consistent padding */
+    margin: 0; /* Remove margins */
+    text-decoration: none !important; /* Remove underline */
+  }
+  
+  .navbar .nav-link:hover,
+  .navbar .btn:hover {
+    color: #dcdcdc !important; /* Light grey on hover */
+    background-color: transparent !important; /* No background on hover */
+  }
+
+/*-------------------
+   REcenter button
+-------------------*/
+.recenterButton {
+    position: absolute;
+    bottom: 20px; /* Adjust position as needed */
+    right: 20px; /* Adjust position as needed */
+    width: 50px;
+    height: 50px;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+    border: none;
+    border-radius: 50%; /* Make it circular */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000; /* Ensure it appears above the map */
+  }
+  
+  .recenterButton:hover {
+    background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
+  }
+  
+  .sniperScope {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border: 2px solid white; /* Outer circle */
+    border-radius: 50%; /* Make it circular */
+  }
+  
+  .sniperScope::before,
+  .sniperScope::after {
+    content: "";
+    position: absolute;
+    background-color: white;
+  }
+  
+  .sniperScope::before {
+    width: 2px;
+    height: 100%;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%); /* Vertical line */
+  }
+  
+  .sniperScope::after {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%); /* Horizontal line */
+  }
+
+/* ===============================
+   Login and Register Containers
+================================= */
+.loginContainer,
+.registerContainer {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background-color: #c9c7c7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ===============================
+   Buttons
+================================= */
+.loginContainer button,
+.registerContainer button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.loginContainer button:hover,
+.registerContainer button:hover {
+  background-color: #1565c0;
+}
+
+/* ===============================
+   Responsive Design
+================================= */
+@media (max-width: 500px) {
+  .loginContainer,
+  .registerContainer {
+    margin: 20px 16px;
+    padding: 16px;
+  }
+
+  .loginContainer h2,
+  .registerContainer h2 {
+    font-size: 20px;
+  }
+
+  .loginContainer input,
+  .registerContainer input,
+  .loginContainer button,
+  .registerContainer button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
+/* ===============================
+   Modal Styles
+================================= */
+.modal {
+  transition: opacity 0.15s linear;
+}
+
+.modal.show {
+  opacity: 1;
+}
+
+.modal-dialog {
+  transition: transform 0.3s ease-out;
+}
+
+.btnCircle {
+  display: inline-block;
+  width: 10px;   /* Adjust the size of the circle */
+  height: 10px;  /* Adjust the size of the circle */
+  background-color: black;
+  border-radius: 50%;
+  position: fixed;
+  top: 10px;     /* Adjust the distance from the top */
+  right: 10px;   /* Adjust the distance from the right */
+  text-align: center;
+  line-height: 50px; /* Vertically center content inside */
+  color: transparent; /* Hide the text */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 9999;  /* Bring the circle to the front */
+}
+
+.btnCircle:hover {
+  background-color: darkgray;  /* Optional: change color on hover */
+}

@@ -1,0 +1,1037 @@
+[
+  {
+    "id": "1001",
+    "category": "Stations",
+    "sub_category": "Police",
+    "loc_name": "תחנה מרכזית החדשה",
+    "address": "לוינסקי 108, תל אביב",
+    "description": "נקודת משטרה",
+    "restricted": true,
+    "email": "police@example.com",
+    "phone": "03-5555100",
+    "site": "police.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "gunPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "granadePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "PatrolCar",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "PatrolMoto",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.77959601040129,
+      32.05630561742851
+    ]
+  },
+  {
+    "id": "1002",
+    "category": "Stations",
+    "sub_category": "Police",
+    "loc_name": "תחנת שכונות",
+    "address": "בר-לב חיים 100, תל אביב",
+    "description": "תחנת משטרה",
+    "restricted": true,
+    "email": "police@example.com",
+    "phone": "03-5555100",
+    "site": "police.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "gunPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "granadePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "PatrolCar",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "PatrolMoto",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.79924309709032,
+      32.046201526318875
+    ]
+  },
+  {
+    "id": "1003",
+    "category": "Stations",
+    "sub_category": "Police",
+    "loc_name": "תחנת לב ת\"א",
+    "address": "1285 0, תל אביב",
+    "description": "תחנת משטרה",
+    "restricted": true,
+    "email": "police@example.com",
+    "phone": "03-5555100",
+    "site": "police.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "gunPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "granadePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "PatrolCar",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "PatrolMoto",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.7972605142222,
+      32.08219310401208
+    ]
+  },
+  {
+    "id": "1004",
+    "category": "Stations",
+    "sub_category": "Police",
+    "loc_name": "מטה מחוז ת\"א, ענף התנועה, ומרחב יפתח",
+    "address": "שלמה 18, תל אביב",
+    "description": "מטה מחוז, מרחב, וענף התנועה",
+    "restricted": true,
+    "email": "police@example.com",
+    "phone": "03-5555100",
+    "site": "police.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "gunPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "granadePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "PatrolCar",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "PatrolMoto",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.76236723674429,
+      32.05387998762947
+    ]
+  },
+  {
+    "id": "1005",
+    "category": "Stations",
+    "sub_category": "Police",
+    "loc_name": "תחנת תל אביב צפון ",
+    "address": "ולנברג ראול 10, תל אביב",
+    "description": "במטה מרחב ירקון",
+    "restricted": true,
+    "email": "police@example.com",
+    "phone": "03-5555100",
+    "site": "police.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "gunPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "granadePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "PatrolCar",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "PatrolMoto",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.835907135167815,
+      32.1082597687922
+    ]
+  },
+  {
+    "id": "1006",
+    "category": "Stations",
+    "sub_category": "Police",
+    "loc_name": "תחנת שרת ",
+    "address": "המסגר 12, תל אביב",
+    "description": "תחנת משטרה",
+    "restricted": true,
+    "email": "police@example.com",
+    "phone": "03-5555100",
+    "site": "police.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "gunPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "granadePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "PatrolCar",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "PatrolMoto",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.78487484046057,
+      32.06104322403938
+    ]
+  },
+  {
+    "id": "1021",
+    "category": "Stations",
+    "sub_category": "Fire",
+    "loc_name": "תחנה  שי",
+    "address": "לא ידוע",
+    "description": "תחנת כיבוי אש",
+    "restricted": true,
+    "email": "fire@example.com",
+    "phone": "03-5555102",
+    "site": "fire.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "FireCommand",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "FireBig",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "RescueTruck",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.782612679294395,
+      32.1037383988865
+    ]
+  },
+  {
+    "id": "1022",
+    "category": "Stations",
+    "sub_category": "Fire",
+    "loc_name": "תחנה עתידים",
+    "address": "לא ידוע",
+    "description": "תחנת כיבוי אש",
+    "restricted": true,
+    "email": "fire@example.com",
+    "phone": "03-5555102",
+    "site": "fire.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "FireCommand",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "FireBig",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "RescueTruck",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.83565909129079,
+      32.106470938602804
+    ]
+  },
+  {
+    "id": "1023",
+    "category": "Stations",
+    "sub_category": "Fire",
+    "loc_name": "תחנת אלון",
+    "address": "לא ידוע",
+    "description": "תחנת כיבוי אש",
+    "restricted": true,
+    "email": "fire@example.com",
+    "phone": "03-5555102",
+    "site": "fire.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "FireCommand",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "FireBig",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "RescueTruck",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.79236844187658,
+      32.062338385979814
+    ]
+  },
+  {
+    "id": "1024",
+    "category": "Stations",
+    "sub_category": "Fire",
+    "loc_name": "תחנת יפו",
+    "address": "לא ידוע",
+    "description": "תחנת כיבוי אש",
+    "restricted": true,
+    "email": "fire@example.com",
+    "phone": "03-5555102",
+    "site": "fire.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "FireCommand",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "FireBig",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "RescueTruck",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.76265692812848,
+      32.04967662818483
+    ]
+  },
+  {
+    "id": "1025",
+    "category": "Stations",
+    "sub_category": "Fire",
+    "loc_name": "תחנת שרונה",
+    "address": "לא ידוע",
+    "description": "תחנת כיבוי אש",
+    "restricted": true,
+    "email": "fire@example.com",
+    "phone": "03-5555102",
+    "site": "fire.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "FireCommand",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "FireBig",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "RescueTruck",
+        "qty": 7,
+        "min_capasity": 5,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.785037633608866,
+      32.072437817527224
+    ]
+  },
+  {
+    "id": "1011",
+    "category": "Stations",
+    "sub_category": "Medical",
+    "loc_name": "תחנת תל אביב",
+    "address": "אלון יגאל 60, תל אביב",
+    "description": "פעיל בשעת חירום",
+    "restricted": true,
+    "email": "medical@example.com",
+    "phone": "03-5555101",
+    "site": "medical.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "Ambulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "Motobulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.79230683109228,
+      32.061819683244806
+    ]
+  },
+  {
+    "id": "1012",
+    "category": "Stations",
+    "sub_category": "Medical",
+    "loc_name": "לב העיר",
+    "address": "מזאה 22, תל אביב",
+    "description": "פעיל בשעת חירום",
+    "restricted": true,
+    "email": "medical@example.com",
+    "phone": "03-5555101",
+    "site": "medical.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "Ambulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "Motobulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.774128154022385,
+      32.06672468597144
+    ]
+  },
+  {
+    "id": "1013",
+    "category": "Stations",
+    "sub_category": "Medical",
+    "loc_name": "תחנת יפו",
+    "address": "ירושלים 100, תל אביב",
+    "description": "פעיל בשעת חירום",
+    "restricted": true,
+    "email": "medical@example.com",
+    "phone": "03-5555101",
+    "site": "medical.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "Ambulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "Motobulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.7578005648123,
+      32.04528720603144
+    ]
+  },
+  {
+    "id": "1014",
+    "category": "Stations",
+    "sub_category": "Medical",
+    "loc_name": "נקודת הזנקה אוניברסיטה",
+    "address": "זליג 10, תל אביב",
+    "description": "פעיל בשעת חירום",
+    "restricted": true,
+    "email": "medical@example.com",
+    "phone": "03-5555101",
+    "site": "medical.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "Ambulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "Motobulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.8047406789335,
+      32.11937118041022
+    ]
+  },
+  {
+    "id": "1015",
+    "category": "Stations",
+    "sub_category": "Medical",
+    "loc_name": "נקודת הזנקה רמת החייל",
+    "address": "הברזל 11, תל אביב",
+    "description": "פעיל בשעת חירום",
+    "restricted": true,
+    "email": "medical@example.com",
+    "phone": "03-5555101",
+    "site": "medical.com",
+    "loc_status": "Active",
+    "photo": "Shelter.png",
+    "incident_start_time": null,
+    "incident_end_time": null,
+    "qtrs_list": [
+      1,
+      2,
+      3
+    ],
+    "equipment": [
+      {
+        "type": "medicalPack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "rescuePack",
+        "qty": 7,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "vehicles": [
+      {
+        "type": "Ambulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      },
+      {
+        "type": "Motobulance",
+        "qty": 7,
+        "min_capasity": 1,
+        "standard_qty": 10,
+        "min_qty": 3
+      }
+    ],
+    "total_personal": 50,
+    "available_personal": 35,
+    "min_personal": 20,
+    "coordinates": [
+      34.836613342046924,
+      32.107473195291156
+    ]
+  }
+]

@@ -1,0 +1,929 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+
+/* GLOBAL RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: 100%;
+  border: none;
+  outline: none;
+  background: white;
+}
+
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #111; /* or your preferred dark background */
+  color: #fff;
+}
+
+
+
+.registerContainer h2 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+
+/* .registerContainer input {
+  width: 100%;
+  padding: 10px;
+  margin: 4px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+} */
+
+
+
+/* ===============================
+   Login and Register Containers
+================================= */
+.loginContainer,
+.registerContainer {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ===============================
+   Headings
+================================= */
+.loginContainer h2,
+.registerContainer h2 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* ===============================
+   Form Inputs
+================================= */
+.loginContainer input,
+.registerContainer input {
+  width: 100%;
+  padding: 10px;
+  margin: 1px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+/* ===============================
+   Buttons
+================================= */
+.loginContainer button,
+.registerContainer button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.loginContainer button:hover,
+.registerContainer button:hover {
+  background-color: #1565c0;
+}
+
+/* ===============================
+   Responsive Design
+================================= */
+@media (max-width: 500px) {
+  .loginContainer,
+  .registerContainer {
+    margin: 20px 16px;
+    padding: 16px;
+  }
+
+  .loginContainer h2,
+  .registerContainer h2 {
+    font-size: 20px;
+  }
+
+  .loginContainer input,
+  .registerContainer input,
+  .loginContainer button,
+  .registerContainer button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
+
+
+
+/* ------------------------------
+   Admin Users Page
+------------------------------ */
+
+.adminContainer {
+  margin: 0 auto; /* Center the content horizontally */
+  padding: 20px; /* Add padding around the content */
+  max-width: 1200px; /* Set a maximum width for the content */
+  box-sizing: border-box; /* Include padding and border in the element's width */
+  overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+
+.adminPanel {
+  /* border: 2px solid lime; */
+  margin-top: 80px;
+  padding: 20px;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center; 
+  overflow-x: auto; /* 👈 scrolls horizontally if table gets too wide */
+}
+
+
+
+
+
+/* 👇 Wrapper to center table and avoid overflow */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* User table */
+
+.userTable {
+  display: inline-block;
+  margin: 20px auto;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  table-layout: fixed;
+  min-width: 800px;      /* 👈 prevents table from being too narrow */
+  max-width: 100%;       /* 👈 avoids overflow beyond screen width */
+}
+
+
+
+
+
+
+.userTable th,
+.userTable td {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  text-align: left;
+  word-wrap: break-word;
+  white-space: normal;
+  vertical-align: middle;
+  /* outline: 2px solid lime; */
+}
+
+/* ✅ Fix for open bottom-right table cell */
+.userTable tr td:last-child {
+  border-right: 1px solid #e0e0e0;
+}
+
+.userTable tr:last-child td {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.userTable tr:last-child td:last-child {
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.userTable th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.userTable tr:hover {
+  background-color: #f9f9f9;
+}
+
+.userTable button {
+  padding: 6px 10px;
+  margin: 4px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbar input,
+.toolbar select,
+.toolbar button {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.toolbar button {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.toolbar button:hover {
+  background-color: #115293;
+}
+
+/* ------------------------------
+   Fixed Header
+------------------------------ */
+.fixedHeader {
+  /* border: 2px solid lime; */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: #1976d2;
+  color: white;
+  display: flex;            /* ✅ aligns header content */
+  align-items: center;      /* ✅ centers vertically */
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+
+.headerContent {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerContent h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.headerContent button {
+  padding: 8px 14px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.headerContent button:hover {
+  background-color: #d32f2f;
+}
+
+/* ------------------------------
+   Additional Shared Styles
+------------------------------ */
+.container {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+.content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  background: #555;
+  color: white;
+  padding: 30px;
+  text-align: center;
+}
+
+.middle {
+  flex: 1;
+  padding: 20px;
+  background: #f4f4f4;
+  overflow: auto;
+}
+
+.inputBox {
+  margin-bottom: 5px;
+  display: block;
+  padding: 8px;
+  width: 50%;
+}
+
+.submitButton {
+  margin-top: 5px;
+  padding: 10px;
+  background-color: blue;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 20%;
+}
+
+.submitButton:hover {
+  background-color: darkblue;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.error {
+  color: red;
+  margin: 10px 0;
+  font-size: 0.9em;
+}
+
+.logoutButton {
+  padding: 8px 16px;
+  background-color: lightgray;
+  color: rgba(17, 17, 17, 0.473);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.logoutButton:hover {
+  background-color: #c82333;
+}
+
+.fileUploadButton {
+  color: black;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.fileUploadButton:hover {
+  text-decoration: underline;
+}
+
+.fileUploadButton::after {
+  content: " 📁";
+  font-size: 0.9em;
+}
+
+.login-prompt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.login-prompt-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.login-prompt-content h2 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.login-prompt-content p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.login-prompt-content button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.login-prompt-content button:hover {
+  background-color: #0056b3;
+}
+
+/* ------------------------------
+   AdminUsers Page Buttons
+------------------------------ */
+.actionButton {
+  padding: 6px 12px;
+  margin: 2px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.addButton {
+  background-color: #4caf50;
+  color: white;
+}
+
+.addButton:hover {
+  background-color: #388e3c;
+}
+
+.deleteButton {
+  background-color: #f44336;
+  color: white;
+}
+
+.deleteButton:hover {
+  background-color: #d32f2f;
+}
+
+.editButton {
+  background-color: #2196f3;
+  color: white;
+}
+
+.editButton:hover {
+  background-color: #1976d2;
+}
+
+.saveButton {
+  background-color: red;
+  color: white;
+}
+
+.saveButton:hover {
+  background-color: #d32f2f;
+}
+
+.cancelButton {
+  background-color: #5e5e5e;
+  color: white;
+}
+
+.cancelButton:hover {
+  background-color: #757575;
+}
+
+
+.authLinkBox {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.authLink {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.authLink:hover {
+  text-decoration: underline;
+}
+
+/*---------------------
+       PopUps
+---------------------*/ 
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.coordBox {
+  margin: 6px 0;
+  padding: 8px;
+  background-color: #f3f3f3;
+  border-radius: 6px;
+}
+
+.coordRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}      
+
+/* ----------------
+  Admin menu design
+-------------------*/
+.adminMenuContainer {
+  display: inline-block;
+  margin-left: 20px;
+  position: relative;
+}
+
+.adminMenuToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: #61dafb;
+}
+
+.adminMenuDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 1000;
+  min-width: 180px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.adminMenuDropdown a {
+  padding: 5px 10px;
+  text-decoration: none;
+  color: #333;
+  border-radius: 4px;
+}
+
+.adminMenuDropdown a:hover {
+  background-color: #f0f0f0;
+}
+
+/*----------------------
+  Map layers menu design
+-----------------------*/
+.layerPanelWrapper {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+}
+
+.layerToggleButton {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.layerTogglePanel {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.legend {
+  display: flex; /* Align items horizontally */
+  flex-wrap: wrap; /* Allow wrapping to the next line if needed */
+  gap: 3px;
+  background: white;
+  padding: 3px;
+  border-radius: 4px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  position: absolute;
+  top: 130px;
+  left: 20px;
+  z-index: 1000;
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  color: black; /* Ensure the text color is visible */
+  font-size: 14px;
+}
+
+/*----------------------
+  Popup design
+-----------------------*/
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.popup-box {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ===============================
+   Dark Mode for Login and Register
+================================= */
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+
+  .loginContainer,
+  .registerContainer {
+    background-color: #1e1e1e;
+    border-color: #333;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+  }
+
+  .loginContainer h2,
+  .registerContainer h2 {
+    color: #f1f1f1;
+  }
+
+  .loginContainer input,
+  .registerContainer input {
+    background-color: #333333;
+    color: #f0f0f0;
+    border-color: #555;
+  }
+
+
+  .loginContainer input::placeholder,
+.registerContainer input::placeholder {
+  color: #aaaaaa; /* brighter placeholder text */
+}
+
+.loginContainer input:focus,
+.registerContainer input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 4px #1976d2;
+}
+
+
+  .loginContainer button,
+  .registerContainer button {
+    background-color: #1565c0;
+    color: white;
+  }
+
+  .loginContainer button:hover,
+  .registerContainer button:hover {
+    background-color: #1e88e5;
+  }
+}
+
+
+
+
+/* ===============================
+   Dark Mode for AdminUsers.js
+================================= */
+
+.userTable input[type="text"],
+.userTable input[type="password"],
+.userTable input[type="email"],
+.userTable input[type="tel"],
+.userTable select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background-color: #222;
+  color: #fff;
+}
+
+
+
+.userTable input[type="checkbox"] {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.userTable td {
+  vertical-align: middle;
+}
+
+.userTable input:focus,
+.userTable select:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 4px #1976d2;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  .userTable {
+    background-color: #333333;
+  }
+
+  .userTable th {
+    background-color: #555555;
+    color: #f1f1f1;
+  }
+
+  .userTable td {
+    background-color: #333333;
+    color: #f0f0f0;
+  }
+
+  .userTable input,
+  .userTable select {
+    background-color: #777777;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+  }
+
+  .userTable input::placeholder {
+    color: #bbbbbb;
+  }
+}
+
+
+.userTable tr:hover {
+  background-color: #2e2e2e;
+}
+
+
+/* ====================================
+   Input Fields Length in AdminUsers.js
+======================================== */
+
+
+
+/* Username */
+.userTable td:nth-child(1),
+.userTable th:nth-child(1) {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userTable td:nth-child(1) input {
+  width: 100%;
+}
+
+
+/* Password */
+.userTable td:nth-child(2),
+.userTable th:nth-child(2) {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userTable td:nth-child(2) input {
+  width: 100%;
+}
+
+
+/* First Name */
+.userTable td:nth-child(3),
+.userTable th:nth-child(3) {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userTable td:nth-child(3) input {
+  width: 100%;
+}
+
+
+/* Last Name */
+.userTable td:nth-child(4),
+.userTable th:nth-child(4) {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userTable td:nth-child(4) input {
+  width: 100%;
+}
+
+
+/* Cellphone */
+.userTable td:nth-child(5),
+.userTable th:nth-child(5) {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userTable td:nth-child(5) input {
+  width: 100%;
+}
+
+/*-----------------------
+  Map design
+------------------------*/
+.recenterButton {
+  position: absolute;
+  top: 100px;
+  right: 20px;
+  z-index: 1000;
+  width: 20px; /* Set the width of the button */
+  height: 20px; /* Set the height of the button */
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 50%; /* Make it circular */
+  cursor: pointer;
+  background-image: url('../icons/crosshair2.png'); /* Path to your image */
+  background-size: cover; /* Ensure the image covers the button */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Prevent tiling */
+  transition: transform 0.2s;
+}
+
+.recenterButton:hover {
+  transform: scale(1.1); /* Slight zoom effect on hover */
+}
+
+.mapControls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}

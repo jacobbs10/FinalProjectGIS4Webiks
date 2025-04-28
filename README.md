@@ -136,8 +136,6 @@ npm install
 cd ../server
 npm install
 
-# Start the development servers
-npm run dev  # (From root folder if concurrently configured)
 ```
 
 ---
@@ -158,7 +156,7 @@ Create a `.env` file inside `/server`:
 
 ```bash
 # From /server
-npm run start  # Starts backend
+node server.js  # Starts backend
 
 # From /client
 npm start  # Starts frontend React app

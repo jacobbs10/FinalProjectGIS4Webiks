@@ -106,8 +106,8 @@ const ResourcesDashboard = ({ show, onHide }) => {
 
   return (
     <Modal 
-      open={show}  // Use the show prop instead of hardcoding true
-      onClose={onHide}  // Use onHide for closing
+      open={show}
+      onClose={onHide}
     >
       <Box
         sx={{
@@ -116,13 +116,13 @@ const ResourcesDashboard = ({ show, onHide }) => {
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "80%",
-          maxHeight: "90vh", // Add maximum height
+          maxHeight: "90vh",
           bgcolor: "background.paper",
           boxShadow: 24,
           p: 4,
           borderRadius: 2,
           display: "flex",
-          flexDirection: "column", // Add flex layout
+          flexDirection: "column",
         }}
       >
         <Typography variant="h6" component="h2" gutterBottom>
@@ -137,6 +137,15 @@ const ResourcesDashboard = ({ show, onHide }) => {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             fullWidth
+            SelectProps={{
+              MenuProps: {
+                PaperProps: {
+                  sx: {
+                    maxHeight: 300
+                  }
+                }
+              }
+            }}
           >
             <MenuItem value="">All Categories</MenuItem>
             {categories.map(cat => (
@@ -150,6 +159,15 @@ const ResourcesDashboard = ({ show, onHide }) => {
             value={subCategory}
             onChange={(e) => setSubCategory(e.target.value)}
             fullWidth
+            SelectProps={{
+              MenuProps: {
+                PaperProps: {
+                  sx: {
+                    maxHeight: 300
+                  }
+                }
+              }
+            }}
           >
             <MenuItem value="">All Sub-Categories</MenuItem>
             {subCategories.map(subCat => (
@@ -159,7 +177,7 @@ const ResourcesDashboard = ({ show, onHide }) => {
         </Box>
 
         {/* Resources Table */}
-        <Box sx={{ flexGrow: 1, overflow: "auto" }}> {/* Add this wrapper */}
+        <Box sx={{ flexGrow: 1, overflow: "auto" }}>
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -174,53 +192,53 @@ const ResourcesDashboard = ({ show, onHide }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-              {paginatedResources.map((resource, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{resource.properties.loc_name}</TableCell>
-                  <TableCell>{resource.properties.category}</TableCell>
-                  <TableCell>{resource.properties.sub_category}</TableCell>
-                  <TableCell
-                    sx={{
-                      color: resource.properties.available_personal < resource.properties.min_personal ? 'red' : 'inherit'
-                    }}
-                  >
-                    {resource.properties.available_personal}
-                  </TableCell>
-                  <TableCell>
-                    {Array.isArray(resource.properties.equipment) && 
-                      resource.properties.equipment.map((item, eqIdx) => (
-                        <div
-                          key={eqIdx}
-                          style={{
-                            color: item.qty < item.min_qty ? 'red' : 'inherit',
-                            marginBottom: '4px'
-                          }}
-                        >
-                          {item.qty} {item.type}
-                        </div>
-                      ))
-                    }
-                  </TableCell>
-                  <TableCell>
-                    {Array.isArray(resource.properties.vehicles) && 
-                      resource.properties.vehicles.map((vehicle, vIdx) => (
-                        <div
-                          key={vIdx}
-                          style={{
-                            color: vehicle.qty < vehicle.min_qty ? 'red' : 'inherit',
-                            marginBottom: '4px'
-                          }}
-                        >
-                          {vehicle.qty} {vehicle.type}
-                        </div>
-                      ))
-                    }
-                  </TableCell>
-                  <TableCell>
-                    {resource.properties.loc_status}
-                  </TableCell>
-                </TableRow>
-              ))}
+                {paginatedResources.map((resource, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{resource.properties.loc_name}</TableCell>
+                    <TableCell>{resource.properties.category}</TableCell>
+                    <TableCell>{resource.properties.sub_category}</TableCell>
+                    <TableCell
+                      sx={{
+                        color: resource.properties.available_personal < resource.properties.min_personal ? 'red' : 'inherit'
+                      }}
+                    >
+                      {resource.properties.available_personal}
+                    </TableCell>
+                    <TableCell>
+                      {Array.isArray(resource.properties.equipment) && 
+                        resource.properties.equipment.map((item, eqIdx) => (
+                          <div
+                            key={eqIdx}
+                            style={{
+                              color: item.qty < item.min_qty ? 'red' : 'inherit',
+                              marginBottom: '4px'
+                            }}
+                          >
+                            {item.qty} {item.type}
+                          </div>
+                        ))
+                      }
+                    </TableCell>
+                    <TableCell>
+                      {Array.isArray(resource.properties.vehicles) && 
+                        resource.properties.vehicles.map((vehicle, vIdx) => (
+                          <div
+                            key={vIdx}
+                            style={{
+                              color: vehicle.qty < vehicle.min_qty ? 'red' : 'inherit',
+                              marginBottom: '4px'
+                            }}
+                          >
+                            {vehicle.qty} {vehicle.type}
+                          </div>
+                        ))
+                      }
+                    </TableCell>
+                    <TableCell>
+                      {resource.properties.loc_status}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>

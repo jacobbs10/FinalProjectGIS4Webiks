@@ -42,6 +42,53 @@ const LoginExpiredPrompt = ({ onClose }) => {
   );
 };
 
+const RouteVisualizer = ({ route, unitId }) => {
+  const map = useMap();
+  
+  // Create a polyline for the route
+  const routeLine = useMemo(() => {
+    if (!route?.coordinates) return null;
+    return L.polyline(route.coordinates, {
+      color: '#3388ff',
+      weight: 3,
+      opacity: 0.7
+    });
+  }, [route]);
+
+  // Create a marker for the responder
+  const responderMarker = useMemo(() => {
+    if (!route?.coordinates?.[0]) return null;
+    return L.marker(route.coordinates[0], {
+      icon: L.divIcon({
+        className: 'responder-marker',
+        html: '<div class="responder-icon"></div>',
+        iconSize: [20, 20]
+      })
+    });
+  }, [route]);
+
+  // Add the route and marker to the map
+  useEffect(() => {
+    if (routeLine) {
+      routeLine.addTo(map);
+    }
+    if (responderMarker) {
+      responderMarker.addTo(map);
+    }
+
+    return () => {
+      if (routeLine) {
+        routeLine.remove();
+      }
+      if (responderMarker) {
+        responderMarker.remove();
+      }
+    };
+  }, [map, routeLine, responderMarker]);
+
+  return null;
+};
+
 function App() {
 
   const [loggedIn, setLoggedIn] = useState(sessionStorage.getItem("loginStatus") === "true");
@@ -83,6 +130,8 @@ function App() {
   const [areaSelected, setAreaSelected] = useState(false);
   const [selectedPolygons, setSelectedPolygons] = useState([]);
   const [rangeCircle, setRangeCircle] = useState(null); // For the range circle    
+  const [activeRoutes, setActiveRoutes] = useState({}); // Store active routes
+  const [responderMarkers, setResponderMarkers] = useState({}); // Store responder markers
   const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
   const mapRef = useRef(null);
@@ -411,10 +460,10 @@ useEffect(() => {
                 {loggedIn ? (
                   <>
                     <Dropdown>
-                <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
+                    <Dropdown.Toggle variant="link" className="text-white text-decoration-none mr-3">
                   Qtrs
                 </Dropdown.Toggle>
-                <Dropdown.Menu style={{ padding: '10px', minWidth: '200px' }}>
+                <Dropdown.Menu style={{ padding: '10px', minWidth: '200px', maxHeight: '300px', overflowY: 'auto' }}>
                   <Form.Check
                     type="checkbox"
                     label="Select All"
@@ -635,6 +684,54 @@ useEffect(() => {
     }
   };
 
+  useEffect(() => {
+    // Import the simulation socket utilities
+    const {
+      connectToSimulation,
+      disconnectFromSimulation,
+      onResponderUpdate,
+      onResponderArrived,
+      removeResponderUpdateListener,
+      removeResponderArrivedListener
+    } = require('../utils/simulationSocket');
+
+    // Connect to simulation when component mounts
+    const socket = connectToSimulation();
+
+    // Handle responder position updates
+    const handleResponderUpdate = (data) => {
+      setResponderMarkers(prev => ({
+        ...prev,
+        [data.unitId]: {
+          position: data.location.coordinates,
+          status: 'enroute'
+        }
+      }));
+    };
+
+    // Handle responder arrival
+    const handleResponderArrived = (data) => {
+      setResponderMarkers(prev => ({
+        ...prev,
+        [data.unitId]: {
+          position: data.location.coordinates,
+          status: 'on_scene'
+        }
+      }));
+    };
+
+    // Add event listeners
+    onResponderUpdate(handleResponderUpdate);
+    onResponderArrived(handleResponderArrived);
+
+    // Cleanup on unmount
+    return () => {
+      removeResponderUpdateListener(handleResponderUpdate);
+      removeResponderArrivedListener(handleResponderArrived);
+      disconnectFromSimulation();
+    };
+  }, []);
+
   return (
     <>
       <QtrsComp qtrs={qtrs} setQtrs={setQtrs} />
@@ -818,13 +915,19 @@ useEffect(() => {
                 <MapContainer
                   center={[location.latitude, location.longitude]}
                   zoom={13}
-                  style={{ height: "100%" }}
+                  style={{ height: "100%", width: "100%" }}
                   ref={mapRef}
                 >
                   <TileLayer
-                    attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> | <a href="https://www.flaticon.com/free-icons/destination" title="destination icons">Destination icons created by Flat Icons - Flaticon</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
+                  
+                  {/* Add RouteVisualizer for each active route */}
+                  {Object.entries(activeRoutes).map(([unitId, route]) => (
+                    <RouteVisualizer key={unitId} route={route} unitId={unitId} />
+                  ))}
+                  
                   <DrawControl 
                     onAreaSelect={handleAreaSelect} 
                     onClearSelection={clearAreaSelection}

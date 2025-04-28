@@ -569,4 +569,66 @@ router.delete("/location/:id", authMiddleware, isAdmin, async (req, res) => {
     }
 });
 
+// Create a new resource
+router.post("/", authMiddleware, isAdmin, async (req, res) => {
+    try {
+        const { 
+            loc_name,
+            category,
+            sub_category,
+            description,
+            address,
+            coordinates,
+            available_personal,
+            min_personal,
+            equipment,
+            vehicles,
+            email,
+            phone
+        } = req.body;
+
+        // Validate required fields
+        if (!loc_name || !category || !sub_category || !coordinates) {
+            return res.status(400).json({
+                message: "Missing required fields: loc_name, category, sub_category, and coordinates are required"
+            });
+        }
+
+        // Create new location document
+        const newLocation = new Location({
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: coordinates
+            },
+            properties: {
+                loc_name,
+                category,
+                sub_category,
+                description: description || "",
+                address: address || "",
+                available_personal: available_personal || 0,
+                min_personal: min_personal || 0,
+                equipment: equipment || [],
+                vehicles: vehicles || [],
+                email: email || "",
+                phone: phone || "",
+                loc_status: "available",
+                restricted: false
+            }
+        });
+
+        // Save to database
+        await newLocation.save();
+
+        res.status(201).json({
+            message: "Resource created successfully",
+            location: newLocation
+        });
+    } catch (error) {
+        console.error("Error creating resource:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 module.exports = router;
